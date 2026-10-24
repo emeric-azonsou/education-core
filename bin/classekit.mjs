@@ -82,6 +82,7 @@ if (!command || !assessmentPath || !["validate", "validate-score", "summary", "s
           ...(orderArgument ? { order: orderArgument.slice("--order=".length) } : {}),
           ...(minTimeArgument ? { minEstimatedSeconds: Number(minTimeArgument.slice("--min-time=".length)) } : {}),
           ...(maxTimeArgument ? { maxEstimatedSeconds: Number(maxTimeArgument.slice("--max-time=".length)) } : {}),
+          ...(seedArgument ? { seed } : {}),
         });
         console.log(JSON.stringify(selected, null, 2));
       } else if (command === "export-json") {

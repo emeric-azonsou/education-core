@@ -134,6 +134,7 @@ export interface QuestionFilter {
   order?: QuestionOrder;
   minEstimatedSeconds?: number;
   maxEstimatedSeconds?: number;
+  seed?: number;
 }
 
 const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "multiple-choice", "true-false", "short-answer"]);
@@ -909,6 +910,7 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
     const kindRank: Record<QuestionKind, number> = { "single-choice": 0, "multiple-choice": 1, "true-false": 2, "short-answer": 3 };
     selected.sort((left, right) => (kindRank[left.kind] - kindRank[right.kind]) * direction);
   }
+  if (filter.seed !== undefined) shuffleInPlace(selected, seededRandom(filter.seed));
   const offset = filter.offset ?? 0;
   return filter.limit === undefined ? selected.slice(offset) : selected.slice(offset, offset + filter.limit);
 }
@@ -988,6 +990,9 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
   }
   if (filter.minEstimatedSeconds !== undefined && filter.maxEstimatedSeconds !== undefined && filter.minEstimatedSeconds > filter.maxEstimatedSeconds) {
     throw new RangeError("Question minEstimatedSeconds must not exceed maxEstimatedSeconds");
+  }
+  if (filter.seed !== undefined && (typeof filter.seed !== "number" || !Number.isInteger(filter.seed))) {
+    throw new RangeError("Question selection seed must be an integer");
   }
 }
 
