@@ -33,6 +33,10 @@ const anyTagSelection = run("select", "examples/assessment.json", "--any-tags=fr
 assert.equal(anyTagSelection.status, 0);
 assert.deepEqual(JSON.parse(anyTagSelection.stdout), []);
 
+const excludedTagSelection = run("select", "examples/assessment.json", "--exclude-tags=fractions");
+assert.equal(excludedTagSelection.status, 0);
+assert.equal(JSON.parse(excludedTagSelection.stdout).length, 1);
+
 const invalidSelection = run("select", "examples/assessment.json", "--min-points=3", "--max-points=1");
 assert.equal(invalidSelection.status, 1);
 assert.match(invalidSelection.stderr, /minPoints.*maxPoints/);
