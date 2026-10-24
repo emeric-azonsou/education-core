@@ -87,6 +87,7 @@ assert.equal(scoreAssessment(createAssessment({
 const serialized = serializeAssessment(assessment);
 assert.equal(parseAssessment(serialized).id, assessment.id);
 assert.throws(() => parseAssessment("not-json"), /Invalid assessment JSON/);
+assert.throws(() => parseAssessment("null"), /Invalid assessment document/);
 assert.deepEqual(validateAssessmentInput({
   id: "",
   title: "",
