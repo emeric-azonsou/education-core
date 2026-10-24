@@ -2,6 +2,7 @@ export type QuestionKind = "single-choice" | "multiple-choice" | "true-false" | 
 export type Difficulty = "introductory" | "intermediate" | "advanced";
 export type AnswerValue = string | readonly string[];
 export type ExportLocale = "en" | "fr";
+export type QuestionOrder = "assessment" | "points-asc" | "points-desc";
 
 export interface Question {
   id: string;
@@ -128,6 +129,7 @@ export interface QuestionFilter {
   maxPoints?: number;
   offset?: number;
   limit?: number;
+  order?: QuestionOrder;
 }
 
 const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "multiple-choice", "true-false", "short-answer"]);
@@ -875,6 +877,8 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
     const matchesMaxPoints = filter.maxPoints === undefined || question.points <= filter.maxPoints;
     return matchesIds && matchesTag && matchesTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints;
   });
+  if (filter.order === "points-asc") selected.sort((left, right) => left.points - right.points);
+  if (filter.order === "points-desc") selected.sort((left, right) => right.points - left.points);
   const offset = filter.offset ?? 0;
   return filter.limit === undefined ? selected.slice(offset) : selected.slice(offset, offset + filter.limit);
 }
@@ -936,6 +940,9 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
   }
   if (filter.limit !== undefined && (typeof filter.limit !== "number" || !Number.isInteger(filter.limit) || filter.limit < 0)) {
     throw new RangeError("Question limit must be a non-negative integer");
+  }
+  if (filter.order !== undefined && !["assessment", "points-asc", "points-desc"].includes(filter.order as string)) {
+    throw new RangeError(`Unsupported question order: ${String(filter.order)}`);
   }
 }
 
