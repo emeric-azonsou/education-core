@@ -3,7 +3,10 @@ import {
   createAssessment,
   getQuestionById,
   listQuestionsByKind,
+  normalizeAnswer,
+  parseAssessment,
   scoreAssessment,
+  serializeAssessment,
   summarizeAssessment,
   validateAssessmentInput,
 } from "../dist/index.js";
@@ -12,6 +15,9 @@ const assessment = createAssessment({
   id: "fractions-01",
   title: "Fractions de base",
   subject: "Mathématiques",
+  difficulty: "introductory",
+  tags: ["fractions", "cycle-3"],
+  learningObjectives: ["Comparer des fractions simples"],
   questions: [
     {
       id: "q1",
@@ -45,6 +51,23 @@ assert.deepEqual(summarizeAssessment(assessment), {
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
 assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
+assert.equal(normalizeAnswer("ÉLÈVE"), "eleve");
+assert.equal(scoreAssessment(createAssessment({
+  id: "accents",
+  title: "Accents",
+  subject: "Français",
+  questions: [{
+    id: "q1",
+    kind: "short-answer",
+    prompt: "Écris le mot élève",
+    answer: "élève",
+    points: 1,
+  }],
+}), { q1: "ELEVE" }).percentage, 100);
+
+const serialized = serializeAssessment(assessment);
+assert.equal(parseAssessment(serialized).id, assessment.id);
+assert.throws(() => parseAssessment("not-json"), /Invalid assessment JSON/);
 assert.deepEqual(validateAssessmentInput({
   id: "",
   title: "",
