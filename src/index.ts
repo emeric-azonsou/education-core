@@ -169,6 +169,9 @@ export function parseAssessment(json: string): Assessment {
   } catch {
     throw new Error("Invalid assessment JSON");
   }
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    throw new Error("Invalid assessment document");
+  }
   return createAssessment(input as AssessmentInput);
 }
 
