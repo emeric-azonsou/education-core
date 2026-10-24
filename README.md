@@ -100,6 +100,8 @@ When handling untrusted JSON, call `isAssessmentInput` before passing data to
 `createAssessment`. Invalid runtime shapes are rejected with a clear error.
 `isQuestionInput` is available when validating individual records from an
 importer or editor.
+Use `validateAnswers` before scoring to detect unknown question IDs and answer
+shapes incompatible with the question type.
 
 Invalid authoring data throws `AssessmentValidationError`, whose `issues`
 property contains structured `{ path, message }` entries for form UIs and CI.
