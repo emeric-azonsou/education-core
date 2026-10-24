@@ -508,8 +508,14 @@ assert.throws(() => summarizeScoreAttempts([perfectAttempt], 101), /between 0 an
 assert.equal(isScoreResult(perfectAttempt), true);
 assert.deepEqual(validateScoreResult(perfectAttempt), []);
 assert.equal(isScoreResult({ percentage: 100 }), false);
-assert.deepEqual(validateScoreResult({ percentage: 100 }), [
-  { path: "scoreResult", message: "must be valid and internally consistent" },
+assert.deepEqual(validateScoreResult({ percentage: 100 }).map((issue) => issue.path), [
+  "scoreResult.earnedPoints",
+  "scoreResult.totalPoints",
+  "scoreResult.correctQuestionIds",
+  "scoreResult.incorrectQuestionIds",
+  "scoreResult.unansweredQuestionIds",
+  "scoreResult.details",
+  "scoreResult.passed",
 ]);
 assert.equal(isScoreResult({ ...perfectAttempt, details: [{ questionId: "q1", expected: "ok", correct: true, earnedPoints: 2, maxPoints: 2, submitted: 7 }] }), false);
 assert.equal(isScoreResult({ ...perfectAttempt, earnedPoints: 99 }), false);
