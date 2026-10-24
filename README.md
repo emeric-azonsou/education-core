@@ -67,6 +67,9 @@ Use `classifyScore` to map a percentage to a performance band, and
 Use `selectQuestions` to create focused views by tag or difficulty without
 mutating the original assessment.
 
+Use `shuffleAssessment(assessment, seed)` to generate reproducible question
+and choice variants while preserving the original assessment.
+
 When handling untrusted JSON, call `isAssessmentInput` before passing data to
 `createAssessment`. Invalid runtime shapes are rejected with a clear error.
 
