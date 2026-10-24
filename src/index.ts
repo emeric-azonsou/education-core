@@ -132,6 +132,7 @@ export interface ReviewRecommendation {
 
 export interface QuestionFilter {
   ids?: readonly string[];
+  excludeIds?: readonly string[];
   tag?: string;
   tags?: readonly string[];
   anyTags?: readonly string[];
@@ -900,6 +901,7 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
   }
   const selected = assessment.questions.filter((question) => {
     const matchesIds = !filter.ids || filter.ids.includes(question.id);
+    const matchesExcludedIds = !filter.excludeIds?.length || !filter.excludeIds.includes(question.id);
     const matchesTag = !filter.tag || question.tags?.some((tag) => normalizeAnswer(tag) === normalizeAnswer(filter.tag ?? ""));
     const matchesTags = !filter.tags?.length || filter.tags.every((tag) => question.tags?.some((questionTag) => normalizeAnswer(questionTag) === normalizeAnswer(tag)));
     const matchesAnyTags = !filter.anyTags?.length || filter.anyTags.some((tag) => question.tags?.some((questionTag) => normalizeAnswer(questionTag) === normalizeAnswer(tag)));
@@ -913,7 +915,7 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
     const matchesTimePresence = filter.hasEstimatedTime === undefined || (question.estimatedSeconds !== undefined) === filter.hasEstimatedTime;
     const matchesDifficultyPresence = filter.hasDifficulty === undefined || (question.difficulty !== undefined) === filter.hasDifficulty;
     const matchesTagsPresence = filter.hasTags === undefined || ((question.tags?.length ?? 0) > 0) === filter.hasTags;
-    return matchesIds && matchesTag && matchesTags && matchesAnyTags && matchesExcludedTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints && matchesMinTime && matchesMaxTime && matchesTimePresence && matchesDifficultyPresence && matchesTagsPresence;
+    return matchesIds && matchesExcludedIds && matchesTag && matchesTags && matchesAnyTags && matchesExcludedTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints && matchesMinTime && matchesMaxTime && matchesTimePresence && matchesDifficultyPresence && matchesTagsPresence;
   });
   if (filter.order === "points-asc") selected.sort((left, right) => left.points - right.points);
   if (filter.order === "points-desc") selected.sort((left, right) => right.points - left.points);
@@ -976,6 +978,14 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
     }
     if (new Set(filter.ids).size !== filter.ids.length) {
       throw new RangeError("Question filter ids must not contain duplicates");
+    }
+  }
+  if (filter.excludeIds !== undefined) {
+    if (!isStringArray(filter.excludeIds) || filter.excludeIds.length === 0 || filter.excludeIds.some((id) => !id.trim())) {
+      throw new TypeError("Question filter excludeIds must be a non-empty array of non-empty strings");
+    }
+    if (new Set(filter.excludeIds).size !== filter.excludeIds.length) {
+      throw new RangeError("Question filter excludeIds must not contain duplicates");
     }
   }
   if (filter.tag !== undefined && typeof filter.tag !== "string") {
