@@ -188,7 +188,8 @@ emits the normalized, validated assessment document.
 
 `select` outputs the matching questions as JSON. Combine `--ids`, `--tag`, `--tags`,
 `--difficulty`, `--kind`, `--min-points` and `--max-points` to build focused
-question sets for review or quiz generation. Use `--order=points-asc` or
+question sets for review or quiz generation. Use `--min-time` and `--max-time`
+to require estimated timing metadata. Use `--order=points-asc` or
 `--order=points-desc` before `--offset` and `--limit` to rank and paginate the
 result. Unsupported filter values are rejected explicitly.
 
