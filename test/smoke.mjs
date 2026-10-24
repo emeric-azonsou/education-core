@@ -46,6 +46,7 @@ const assessment = createAssessment({
       difficulty: "introductory",
       hint: "Cherche une fraction équivalente.",
       explanation: "Multiplier le numérateur et le dénominateur par 2.",
+      estimatedSeconds: 45,
     },
     {
       id: "q2",
@@ -58,6 +59,21 @@ const assessment = createAssessment({
     },
   ],
 });
+
+const mutableTags = ["immutable"];
+const mutableObjectives = ["Tester la copie défensive"];
+const immutableAssessment = createAssessment({
+  id: "immutable",
+  title: "Immutabilité",
+  subject: "Tests",
+  tags: mutableTags,
+  learningObjectives: mutableObjectives,
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1 }],
+});
+mutableTags.push("changed");
+mutableObjectives.push("changed");
+assert.deepEqual(immutableAssessment.tags, ["immutable"]);
+assert.deepEqual(immutableAssessment.learningObjectives, ["Tester la copie défensive"]);
 
 assert.equal(assessment.language, "fr");
 assert.equal(assessment.schemaVersion, 1);
@@ -239,9 +255,15 @@ assert.throws(() => createAssessment({
   subject: "Tests",
   questions: [{ id: "q1", kind: "short-answer", prompt: "Question", hint: " ", answer: "ok", points: 1 }],
 }), /hint.*must not be empty/);
+assert.throws(() => createAssessment({
+  id: "invalid-estimate",
+  title: "Invalid",
+  subject: "Tests",
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1, estimatedSeconds: 0 }],
+}), /estimatedSeconds.*positive/);
 
 const csv = serializeAssessmentCsv(assessment);
-assert.match(csv, /id,kind,prompt,answer,acceptedAnswers,points,choices,difficulty,tags/);
+assert.match(csv, /id,kind,prompt,answer,acceptedAnswers,points,choices,difficulty,tags,estimatedSeconds,hint,explanation/);
 const csvRoundTrip = parseAssessmentCsv(csv, {
   id: "csv-copy",
   title: "Copie CSV",
@@ -249,6 +271,9 @@ const csvRoundTrip = parseAssessmentCsv(csv, {
 });
 assert.equal(csvRoundTrip.questions.length, 2);
 assert.equal(csvRoundTrip.questions[0].prompt, "Quelle fraction est équivalente à 1/2 ?");
+assert.equal(csvRoundTrip.questions[0].estimatedSeconds, 45);
+assert.equal(csvRoundTrip.questions[0].hint, "Cherche une fraction équivalente.");
+assert.equal(csvRoundTrip.questions[0].explanation, "Multiplier le numérateur et le dénominateur par 2.");
 const multipleCsv = parseAssessmentCsv(serializeAssessmentCsv(multipleChoice), {
   id: "multiple-csv",
   title: "Multiple CSV",
@@ -273,6 +298,7 @@ assert.match(markdown, /Duration:\*\* 30 minutes/);
 assert.match(markdown, /Objectives:\*\* Comparer des fractions simples/);
 assert.match(markdown, /Explanation:\*\* Multiplier le numérateur/);
 assert.match(markdown, /Hint:\*\* Cherche une fraction équivalente/);
+assert.match(markdown, /Estimated time:\*\* 45 seconds/);
 assert.doesNotMatch(markdown, /Answer/);
 assert.match(serializeAssessmentMarkdown(assessment, true), /\*\*Answer:\*\* 2\/4/);
 assert.match(serializeAssessmentMarkdown(assessment, false, "fr"), /Matière/);
@@ -285,6 +311,7 @@ assert.match(html, /Objectives:<\/strong> Comparer des fractions simples/);
 assert.match(html, /Difficulty:<\/strong> introductory/);
 assert.match(html, /Explanation:<\/strong> Multiplier le numérateur/);
 assert.match(html, /Hint:<\/strong> Cherche une fraction équivalente/);
+assert.match(html, /Estimated time:<\/strong> 45 seconds/);
 assert.match(html, /aria-labelledby="question-1"/);
 assert.match(html, /<ol>/);
 assert.match(serializeAssessmentHtml(assessment, false, "fr"), /Matière:<\/strong>/);
