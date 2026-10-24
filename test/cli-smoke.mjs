@@ -41,6 +41,10 @@ const seededSelection = run("select", "examples/assessment.json", "--seed=42");
 assert.equal(seededSelection.status, 0);
 assert.equal(JSON.parse(seededSelection.stdout)[0].id, "q1");
 
+const idsOnlySelection = run("select", "examples/assessment.json", "--ids-only");
+assert.equal(idsOnlySelection.status, 0);
+assert.deepEqual(JSON.parse(idsOnlySelection.stdout), ["q1"]);
+
 const timedSelection = run("select", "examples/assessment.json", "--min-time=1");
 assert.equal(timedSelection.status, 0);
 assert.deepEqual(JSON.parse(timedSelection.stdout), []);
