@@ -69,6 +69,15 @@ npm run check
 
 The command compiles the package and runs the dependency-free smoke tests.
 
+## CLI
+
+After building, validate an assessment file or score submitted answers:
+
+```bash
+npx classekit validate examples/assessment.json
+npx classekit score examples/assessment.json examples/answers.json
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions should include tests and preserve the package's dependency-free runtime.
