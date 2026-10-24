@@ -51,6 +51,23 @@ assert.throws(() => createAssessment({
   }],
 }), /must contain at least two choices/);
 
+assert.deepEqual(validateAssessmentInput({
+  id: "duplicates",
+  title: "Choix invalides",
+  subject: "Mathématiques",
+  questions: [{
+    id: "q1",
+    kind: "single-choice",
+    prompt: "Choisis une réponse",
+    choices: ["Oui", "oui"],
+    answer: "Non",
+    points: 1,
+  }],
+}), [
+  { path: "questions[0].choices", message: "must not contain duplicates" },
+  { path: "questions[0].answer", message: "must match one of the choices" },
+]);
+
 assert.deepEqual(scoreAssessment(assessment, {
   q1: "2/4",
   q2: "false",
