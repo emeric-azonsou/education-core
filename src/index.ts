@@ -696,25 +696,25 @@ export function serializeAssessmentCsv(assessment: Assessment): string {
 export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswers = false, locale: ExportLocale = "en"): string {
   assertExportLocale(locale);
   const labels = exportLabels(locale);
-  const lines = [`# ${assessment.title}`, "", `- **${labels.subject}:** ${assessment.subject}`, `- **${labels.language}:** ${assessment.language}`];
-  if (assessment.difficulty) lines.push(`- **${labels.difficulty}:** ${assessment.difficulty}`);
-  if (assessment.tags?.length) lines.push(`- **${labels.tags}:** ${assessment.tags.join(", ")}`);
-  if (assessment.learningObjectives?.length) lines.push(`- **${labels.objectives}:** ${assessment.learningObjectives.join(", ")}`);
+  const lines = [`# ${escapeMarkdown(assessment.title)}`, "", `- **${labels.subject}:** ${escapeMarkdown(assessment.subject)}`, `- **${labels.language}:** ${escapeMarkdown(assessment.language)}`];
+  if (assessment.difficulty) lines.push(`- **${labels.difficulty}:** ${escapeMarkdown(assessment.difficulty)}`);
+  if (assessment.tags?.length) lines.push(`- **${labels.tags}:** ${assessment.tags.map(escapeMarkdown).join(", ")}`);
+  if (assessment.learningObjectives?.length) lines.push(`- **${labels.objectives}:** ${assessment.learningObjectives.map(escapeMarkdown).join(", ")}`);
   if (assessment.durationMinutes) lines.push(`- **${labels.duration}:** ${assessment.durationMinutes} ${labels.minutes}`);
   lines.push("", `## ${labels.questions}`, "");
 
   assessment.questions.forEach((question, index) => {
-    lines.push(`${index + 1}. ${question.prompt} *(${question.points} point${question.points === 1 ? "" : "s"})*`);
+    lines.push(`${index + 1}. ${escapeMarkdown(question.prompt)} *(${question.points} point${question.points === 1 ? "" : "s"})*`);
     if (question.choices?.length) {
       for (const choice of question.choices) {
         const marker = includeAnswers && getAnswerValues(question.answer).some((answer) => normalizeAnswer(choice) === normalizeAnswer(answer)) ? " [x]" : " [ ]";
-        lines.push(`   -${marker} ${choice}`);
+        lines.push(`   -${marker} ${escapeMarkdown(choice)}`);
       }
     }
-    if (includeAnswers) lines.push(`   - **${labels.answer}:** ${getAnswerValues(question.answer).join(", ")}`);
+    if (includeAnswers) lines.push(`   - **${labels.answer}:** ${getAnswerValues(question.answer).map(escapeMarkdown).join(", ")}`);
     if (question.estimatedSeconds !== undefined) lines.push(`   - **${labels.estimatedTime}:** ${question.estimatedSeconds} ${labels.seconds}`);
-    if (question.explanation) lines.push(`   - **${labels.explanation}:** ${question.explanation}`);
-    if (question.hint) lines.push(`   - **${labels.hint}:** ${question.hint}`);
+    if (question.explanation) lines.push(`   - **${labels.explanation}:** ${escapeMarkdown(question.explanation)}`);
+    if (question.hint) lines.push(`   - **${labels.hint}:** ${escapeMarkdown(question.hint)}`);
     lines.push("");
   });
   return `${lines.join("\n").trim()}\n`;
@@ -926,6 +926,10 @@ function escapeHtml(value: string): string {
     '"': "&quot;",
     "'": "&#39;",
   })[character] ?? character);
+}
+
+function escapeMarkdown(value: string): string {
+  return value.replace(/([\\`*_[\]<>#])/g, "\\$1").replace(/\r?\n/g, " ");
 }
 
 function exportLabels(locale: ExportLocale): {
