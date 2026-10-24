@@ -490,7 +490,9 @@ export function serializeAssessmentHtml(assessment: Assessment, includeAnswers =
       ? `<fieldset><legend>${labels.choices} ${index + 1}</legend><ul>${question.choices.map((choice, choiceIndex) => `<li><label><input type="checkbox" disabled name="q${index + 1}" value="${choiceIndex}"> ${escapeHtml(choice)}</label></li>`).join("")}</ul></fieldset>`
       : "";
     const answer = includeAnswers ? `<p><strong>${labels.answer}:</strong> ${escapeHtml(getAnswerValues(question.answer).join(", "))}</p>` : "";
-    return `<li><section aria-labelledby="question-${index + 1}"><h2 id="question-${index + 1}">${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${choices}${answer}</section></li>`;
+    const difficulty = question.difficulty ? `<p><strong>${labels.difficulty}:</strong> ${escapeHtml(question.difficulty)}</p>` : "";
+    const explanation = question.explanation ? `<p><strong>${labels.explanation}:</strong> ${escapeHtml(question.explanation)}</p>` : "";
+    return `<li><section aria-labelledby="question-${index + 1}"><h2 id="question-${index + 1}">${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${difficulty}${choices}${answer}${explanation}</section></li>`;
   }).join("\n");
   const duration = assessment.durationMinutes ? `<p><strong>${labels.duration}:</strong> ${assessment.durationMinutes} ${labels.minutes}</p>` : "";
   const objectives = assessment.learningObjectives?.length ? `<p><strong>${labels.objectives}:</strong> ${assessment.learningObjectives.map(escapeHtml).join(", ")}</p>` : "";
