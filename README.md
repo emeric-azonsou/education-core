@@ -76,6 +76,9 @@ Use `classifyScore` to map a percentage to a performance band, and
 `summarizeAssessment` reports both the question-type distribution and the
 difficulty distribution for dashboard or content-review views.
 
+Use `summarizeScoreAttempts` to calculate averages, score ranges and pass
+rates across repeated learner attempts.
+
 Use `selectQuestions` to create focused views by tag or difficulty without
 mutating the original assessment.
 
