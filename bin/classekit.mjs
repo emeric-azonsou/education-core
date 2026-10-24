@@ -4,9 +4,11 @@ import { readFile } from "node:fs/promises";
 import { parseAssessment, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown } from "../dist/index.js";
 
 const [command, assessmentPath, answersPath] = process.argv.slice(2);
+const localeArgument = process.argv.find((argument) => argument.startsWith("--locale="));
+const locale = localeArgument?.slice("--locale=".length) ?? "en";
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> | classekit score <assessment.json> <answers.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] | classekit export-html <assessment.json> [--answers]");
+  console.error("Usage: classekit validate <assessment.json> | classekit score <assessment.json> <answers.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -24,9 +26,9 @@ if (!command || !assessmentPath || !["validate", "score", "export-csv", "export-
     } else if (command === "export-csv") {
       console.log(serializeAssessmentCsv(assessment));
     } else if (command === "export-md") {
-      console.log(serializeAssessmentMarkdown(assessment, process.argv.includes("--answers")));
+      console.log(serializeAssessmentMarkdown(assessment, process.argv.includes("--answers"), locale));
     } else if (command === "export-html") {
-      console.log(serializeAssessmentHtml(assessment, process.argv.includes("--answers")));
+      console.log(serializeAssessmentHtml(assessment, process.argv.includes("--answers"), locale));
     } else {
       if (!answersPath) {
         usage();

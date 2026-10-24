@@ -1,6 +1,7 @@
 export type QuestionKind = "single-choice" | "multiple-choice" | "true-false" | "short-answer";
 export type Difficulty = "introductory" | "intermediate" | "advanced";
 export type AnswerValue = string | readonly string[];
+export type ExportLocale = "en" | "fr";
 
 export interface Question {
   id: string;
@@ -378,12 +379,13 @@ export function serializeAssessmentCsv(assessment: Assessment): string {
 }
 
 /** Renders an assessment as Markdown, optionally including the answer key. */
-export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswers = false): string {
-  const lines = [`# ${assessment.title}`, "", `- **Subject:** ${assessment.subject}`, `- **Language:** ${assessment.language}`];
-  if (assessment.difficulty) lines.push(`- **Difficulty:** ${assessment.difficulty}`);
-  if (assessment.tags?.length) lines.push(`- **Tags:** ${assessment.tags.join(", ")}`);
-  if (assessment.durationMinutes) lines.push(`- **Duration:** ${assessment.durationMinutes} minutes`);
-  lines.push("", "## Questions", "");
+export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswers = false, locale: ExportLocale = "en"): string {
+  const labels = exportLabels(locale);
+  const lines = [`# ${assessment.title}`, "", `- **${labels.subject}:** ${assessment.subject}`, `- **${labels.language}:** ${assessment.language}`];
+  if (assessment.difficulty) lines.push(`- **${labels.difficulty}:** ${assessment.difficulty}`);
+  if (assessment.tags?.length) lines.push(`- **${labels.tags}:** ${assessment.tags.join(", ")}`);
+  if (assessment.durationMinutes) lines.push(`- **${labels.duration}:** ${assessment.durationMinutes} ${labels.minutes}`);
+  lines.push("", `## ${labels.questions}`, "");
 
   assessment.questions.forEach((question, index) => {
     lines.push(`${index + 1}. ${question.prompt} *(${question.points} point${question.points === 1 ? "" : "s"})*`);
@@ -393,24 +395,25 @@ export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswe
         lines.push(`   -${marker} ${choice}`);
       }
     }
-    if (includeAnswers) lines.push(`   - **Answer:** ${getAnswerValues(question.answer).join(", ")}`);
-    if (question.explanation) lines.push(`   - **Explanation:** ${question.explanation}`);
+    if (includeAnswers) lines.push(`   - **${labels.answer}:** ${getAnswerValues(question.answer).join(", ")}`);
+    if (question.explanation) lines.push(`   - **${labels.explanation}:** ${question.explanation}`);
     lines.push("");
   });
   return `${lines.join("\n").trim()}\n`;
 }
 
 /** Renders an assessment as escaped, standalone HTML. */
-export function serializeAssessmentHtml(assessment: Assessment, includeAnswers = false): string {
+export function serializeAssessmentHtml(assessment: Assessment, includeAnswers = false, locale: ExportLocale = "en"): string {
+  const labels = exportLabels(locale);
   const questions = assessment.questions.map((question, index) => {
     const choices = question.choices?.length
-      ? `<fieldset><legend>Choices for question ${index + 1}</legend><ul>${question.choices.map((choice, choiceIndex) => `<li><label><input type="checkbox" disabled name="q${index + 1}" value="${choiceIndex}"> ${escapeHtml(choice)}</label></li>`).join("")}</ul></fieldset>`
+      ? `<fieldset><legend>${labels.choices} ${index + 1}</legend><ul>${question.choices.map((choice, choiceIndex) => `<li><label><input type="checkbox" disabled name="q${index + 1}" value="${choiceIndex}"> ${escapeHtml(choice)}</label></li>`).join("")}</ul></fieldset>`
       : "";
-    const answer = includeAnswers ? `<p><strong>Answer:</strong> ${escapeHtml(getAnswerValues(question.answer).join(", "))}</p>` : "";
+    const answer = includeAnswers ? `<p><strong>${labels.answer}:</strong> ${escapeHtml(getAnswerValues(question.answer).join(", "))}</p>` : "";
     return `<li><section aria-labelledby="question-${index + 1}"><h2 id="question-${index + 1}">${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${choices}${answer}</section></li>`;
   }).join("\n");
-  const duration = assessment.durationMinutes ? `<p><strong>Duration:</strong> ${assessment.durationMinutes} minutes</p>` : "";
-  return `<!doctype html><html lang="${escapeHtml(assessment.language)}"><head><meta charset="utf-8"><title>${escapeHtml(assessment.title)}</title></head><body><main><h1>${escapeHtml(assessment.title)}</h1><p><strong>Subject:</strong> ${escapeHtml(assessment.subject)}</p>${duration}<ol>${questions}</ol></main></body></html>\n`;
+  const duration = assessment.durationMinutes ? `<p><strong>${labels.duration}:</strong> ${assessment.durationMinutes} ${labels.minutes}</p>` : "";
+  return `<!doctype html><html lang="${escapeHtml(assessment.language)}"><head><meta charset="utf-8"><title>${escapeHtml(assessment.title)}</title></head><body><main><h1>${escapeHtml(assessment.title)}</h1><p><strong>${labels.subject}:</strong> ${escapeHtml(assessment.subject)}</p>${duration}<ol>${questions}</ol></main></body></html>\n`;
 }
 
 /** Imports a question CSV document and validates the resulting assessment. */
@@ -556,6 +559,23 @@ function escapeHtml(value: string): string {
     '"': "&quot;",
     "'": "&#39;",
   })[character] ?? character);
+}
+
+function exportLabels(locale: ExportLocale): {
+  subject: string;
+  language: string;
+  difficulty: string;
+  tags: string;
+  duration: string;
+  minutes: string;
+  questions: string;
+  choices: string;
+  answer: string;
+  explanation: string;
+} {
+  return locale === "fr"
+    ? { subject: "Matière", language: "Langue", difficulty: "Difficulté", tags: "Tags", duration: "Durée", minutes: "minutes", questions: "Questions", choices: "Choix pour la question", answer: "Réponse", explanation: "Explication" }
+    : { subject: "Subject", language: "Language", difficulty: "Difficulty", tags: "Tags", duration: "Duration", minutes: "minutes", questions: "Questions", choices: "Choices for question", answer: "Answer", explanation: "Explanation" };
 }
 
 function parseCsvRows(csv: string): string[][] {
