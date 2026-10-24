@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
-import { parseAssessment, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, summarizeScoreAttempts } from "../dist/index.js";
+import { parseAssessment, recommendReviewTags, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, summarizeScoreAttempts } from "../dist/index.js";
 
 const args = process.argv.slice(2);
 const [command, assessmentPath, answersPath] = args;
 const localeArgument = process.argv.find((argument) => argument.startsWith("--locale="));
 const locale = localeArgument?.slice("--locale=".length) ?? "en";
+const thresholdArgument = process.argv.find((argument) => argument.startsWith("--threshold="));
+const threshold = thresholdArgument ? Number(thresholdArgument.slice("--threshold=".length)) : 70;
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> | classekit score <assessment.json> <answers.json> | classekit stats <result-1.json> <result-2.json> ... | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
+  console.error("Usage: classekit validate <assessment.json> | classekit score <assessment.json> <answers.json> | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit stats <result-1.json> <result-2.json> ... | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -17,7 +19,7 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
-if (!command || !assessmentPath || !["validate", "score", "stats", "export-csv", "export-md", "export-html"].includes(command)) {
+if (!command || !assessmentPath || !["validate", "score", "recommend", "stats", "export-csv", "export-md", "export-html"].includes(command)) {
   usage();
 } else {
   try {
@@ -35,6 +37,12 @@ if (!command || !assessmentPath || !["validate", "score", "stats", "export-csv",
       console.log(serializeAssessmentMarkdown(assessment, process.argv.includes("--answers"), locale));
       } else if (command === "export-html") {
       console.log(serializeAssessmentHtml(assessment, process.argv.includes("--answers"), locale));
+      } else if (command === "recommend") {
+        if (!answersPath) {
+          usage();
+        } else {
+          console.log(JSON.stringify(recommendReviewTags(assessment, await readJson(answersPath), threshold), null, 2));
+        }
       } else {
       if (!answersPath) {
         usage();
