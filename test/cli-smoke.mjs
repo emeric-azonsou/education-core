@@ -33,6 +33,10 @@ const difficultyOrderedSelection = run("select", "examples/assessment.json", "--
 assert.equal(difficultyOrderedSelection.status, 0);
 assert.equal(JSON.parse(difficultyOrderedSelection.stdout)[0].id, "q1");
 
+const kindOrderedSelection = run("select", "examples/assessment.json", "--order=kind-desc", "--limit=1");
+assert.equal(kindOrderedSelection.status, 0);
+assert.equal(JSON.parse(kindOrderedSelection.stdout)[0].kind, "short-answer");
+
 const timedSelection = run("select", "examples/assessment.json", "--min-time=1");
 assert.equal(timedSelection.status, 0);
 assert.deepEqual(JSON.parse(timedSelection.stdout), []);
