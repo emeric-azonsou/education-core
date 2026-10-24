@@ -9,6 +9,7 @@ import {
   isScoreResult,
   listQuestionsByDifficulty,
   listQuestionsByKind,
+  listQuestionsByTag,
   normalizeAnswer,
   parseAssessmentCsv,
   parseAssessment,
@@ -99,9 +100,15 @@ assert.deepEqual(summarizeAssessment(assessment), {
     intermediate: 1,
     advanced: 0,
   },
+  tagCounts: {
+    fractions: 1,
+    "cycle-3": 1,
+  },
 });
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
+assert.equal(listQuestionsByTag(assessment, "FRACTIONS")[0].id, "q1");
+assert.equal(listQuestionsByTag(assessment, "missing").length, 0);
 assert.equal(listQuestionsByDifficulty(assessment, "introductory")[0].id, "q1");
 assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
 assert.equal(selectQuestions(assessment, { tag: "FRACTIONS" }).length, 1);
