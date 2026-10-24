@@ -82,6 +82,9 @@ difficulty distribution for dashboard or content-review views.
 Use `summarizeScoreAttempts` to calculate averages, score ranges and pass
 rates across repeated learner attempts.
 
+Use `recommendReviewTags` to identify skills below a target percentage and
+guide targeted revision activities.
+
 The same aggregation is available from the CLI with `classekit stats` and any
 number of saved score-result JSON files.
 Imported results are checked with `isScoreResult` before they are aggregated.
