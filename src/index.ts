@@ -609,7 +609,7 @@ export function parseAssessment(json: string): Assessment {
 
 /** Serializes a validated score result for storage or transport. */
 export function serializeScoreResult(result: ScoreResult): string {
-  if (!isScoreResult(result)) throw new Error("Invalid score result");
+  if (validateScoreResult(result).length > 0) throw new Error("Invalid score result");
   return JSON.stringify(result, null, 2);
 }
 
@@ -621,8 +621,15 @@ export function parseScoreResult(json: string): ScoreResult {
   } catch {
     throw new Error("Invalid score result JSON");
   }
-  if (!isScoreResult(value)) throw new Error("Invalid score result document");
-  return value;
+  if (validateScoreResult(value).length > 0) throw new Error("Invalid score result document");
+  return value as ScoreResult;
+}
+
+/** Returns structured issues for a score result loaded from an external source. */
+export function validateScoreResult(value: unknown): ValidationIssue[] {
+  return isScoreResult(value)
+    ? []
+    : [{ path: "scoreResult", message: "must be valid and internally consistent" }];
 }
 
 /** Exports assessment questions as a spreadsheet-friendly CSV document. */

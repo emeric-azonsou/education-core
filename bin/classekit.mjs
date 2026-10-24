@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
-import { parseAssessment, parseScoreResult, recommendReviewTags, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, shuffleAssessment, summarizeAssessment, summarizeScoreAttempts, validateAnswers, validateAssessmentInput } from "../dist/index.js";
+import { parseAssessment, parseScoreResult, recommendReviewTags, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, shuffleAssessment, summarizeAssessment, summarizeScoreAttempts, validateAnswers, validateAssessmentInput, validateScoreResult } from "../dist/index.js";
 
 const args = process.argv.slice(2);
 const [command, assessmentPath, answersPath] = args;
@@ -14,7 +14,7 @@ const seed = seedArgument ? Number(seedArgument.slice("--seed=".length)) : 1;
 const partialCredit = process.argv.includes("--partial-credit");
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> [--json] | classekit summary <assessment.json> | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
+  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -22,11 +22,15 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
-if (!command || !assessmentPath || !["validate", "summary", "score", "recommend", "shuffle", "stats", "export-json", "export-csv", "export-md", "export-html"].includes(command)) {
+if (!command || !assessmentPath || !["validate", "validate-score", "summary", "score", "recommend", "shuffle", "stats", "export-json", "export-csv", "export-md", "export-html"].includes(command)) {
   usage();
 } else {
   try {
-    if (command === "stats") {
+    if (command === "validate-score") {
+      const issues = validateScoreResult(await readJson(assessmentPath));
+      console.log(JSON.stringify({ valid: issues.length === 0, issues }, null, 2));
+      if (issues.length > 0) process.exitCode = 1;
+    } else if (command === "stats") {
       const resultPaths = args.slice(1).filter((argument) => !argument.startsWith("--"));
       const results = await Promise.all(resultPaths.map(async (path) => parseScoreResult(await readFile(path, "utf8"))));
       console.log(JSON.stringify(summarizeScoreAttempts(results), null, 2));
