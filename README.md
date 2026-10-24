@@ -66,8 +66,8 @@ to obtain the number of questions, total points and distribution by question
 type.
 
 `getQuestionById` retrieves one question for editor screens, while
-`listQuestionsByKind` and `listQuestionsByDifficulty` support filtered views
-without changing the assessment.
+`listQuestionsByKind`, `listQuestionsByDifficulty` and `listQuestionsByTag`
+support filtered views without changing the assessment.
 
 Assessments may also include `difficulty`, `tags` and `learningObjectives`.
 Use `serializeAssessment` and `parseAssessment` to persist validated JSON.
@@ -86,9 +86,10 @@ feedback screens and teacher dashboards.
 Use `classifyScore` to map a percentage to a performance band, and
 `scoreAssessmentByTag` to summarize progress by skill or learning topic.
 
-`summarizeAssessment` reports both the question-type distribution and the
-difficulty distribution for dashboard or content-review views, plus the number
-of questions with timing metadata and their combined estimated duration.
+`summarizeAssessment` reports question-type, difficulty and tag distributions
+for dashboard or content-review views, plus the number of questions with timing
+metadata and their combined estimated duration. Tag keys are normalized for
+case and accents.
 
 Use `summarizeScoreAttempts` to calculate averages, score ranges and pass
 rates across repeated learner attempts.
