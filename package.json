@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Portable assessment primitives for francophone education software.",
   "type": "module",
+  "bin": {
+    "classekit": "./bin/classekit.mjs"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
