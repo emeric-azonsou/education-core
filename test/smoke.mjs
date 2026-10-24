@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   createAssessment,
+  AssessmentValidationError,
   classifyScore,
   getQuestionById,
   isAssessmentInput,
@@ -154,6 +155,13 @@ assert.equal(isAssessmentInput({ id: "broken" }), false);
 assert.equal(isQuestionInput(assessment.questions[0]), true);
 assert.equal(isQuestionInput(null), false);
 assert.throws(() => createAssessment(/** @type {any} */ ({ id: "broken" })), /Invalid assessment input/);
+try {
+  createAssessment({ id: "", title: "", subject: "", questions: [] });
+  assert.fail("Expected a typed validation error");
+} catch (error) {
+  assert.equal(error instanceof AssessmentValidationError, true);
+  assert.equal(error.issues.length, 4);
+}
 assert.deepEqual(validateAssessmentInput({
   id: "malformed-question",
   title: "Malformed",
