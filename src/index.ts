@@ -201,6 +201,7 @@ export function validateAssessmentInput(input: unknown): ValidationIssue[] {
   if (!input.id.trim()) issues.push({ path: "id", message: "must not be empty" });
   if (!input.title.trim()) issues.push({ path: "title", message: "must not be empty" });
   if (!input.subject.trim()) issues.push({ path: "subject", message: "must not be empty" });
+  if (input.language !== undefined && !input.language.trim()) issues.push({ path: "language", message: "must not be empty" });
   if (input.schemaVersion !== undefined && input.schemaVersion !== 1) {
     issues.push({ path: "schemaVersion", message: "only schema version 1 is supported" });
   }
@@ -210,6 +211,12 @@ export function validateAssessmentInput(input: unknown): ValidationIssue[] {
   validateTags(input.tags, "tags", issues);
   if (input.learningObjectives?.some((objective) => !objective.trim())) {
     issues.push({ path: "learningObjectives", message: "must not contain empty values" });
+  }
+  if (input.learningObjectives) {
+    const normalizedObjectives = input.learningObjectives.map(normalizeAnswer);
+    if (new Set(normalizedObjectives).size !== normalizedObjectives.length) {
+      issues.push({ path: "learningObjectives", message: "must not contain duplicates" });
+    }
   }
   if (input.durationMinutes !== undefined &&
       (!Number.isFinite(input.durationMinutes) || input.durationMinutes <= 0)) {
@@ -233,6 +240,7 @@ export function validateAssessmentInput(input: unknown): ValidationIssue[] {
     ids.add(question.id);
     if (!question.prompt.trim()) issues.push({ path: `${path}.prompt`, message: "must not be empty" });
     if (question.hint !== undefined && !question.hint.trim()) issues.push({ path: `${path}.hint`, message: "must not be empty" });
+    if (question.explanation !== undefined && !question.explanation.trim()) issues.push({ path: `${path}.explanation`, message: "must not be empty" });
     if (question.estimatedSeconds !== undefined &&
         (!Number.isFinite(question.estimatedSeconds) || question.estimatedSeconds <= 0)) {
       issues.push({ path: `${path}.estimatedSeconds`, message: "must be a positive number" });
@@ -250,6 +258,9 @@ export function validateAssessmentInput(input: unknown): ValidationIssue[] {
       issues.push({ path: `${path}.choices`, message: "must contain at least two choices" });
     }
     if (question.choices) {
+      if (question.choices.some((choice) => !choice.trim())) {
+        issues.push({ path: `${path}.choices`, message: "must not contain empty values" });
+      }
       const normalizedChoices = question.choices.map((choice) => choice.trim().toLowerCase());
       if (new Set(normalizedChoices).size !== normalizedChoices.length) {
         issues.push({ path: `${path}.choices`, message: "must not contain duplicates" });
@@ -259,8 +270,20 @@ export function validateAssessmentInput(input: unknown): ValidationIssue[] {
     if (answerValues.length === 0) {
       issues.push({ path: `${path}.answer`, message: "must not be empty" });
     }
+    if (answerValues.some((answer) => !answer.trim())) {
+      issues.push({ path: `${path}.answer`, message: "must not contain empty values" });
+    }
+    if (Array.isArray(question.answer)) {
+      const normalizedAnswers = question.answer.map(normalizeAnswer);
+      if (new Set(normalizedAnswers).size !== normalizedAnswers.length) {
+        issues.push({ path: `${path}.answer`, message: "must not contain duplicates" });
+      }
+    }
     if (question.kind === "multiple-choice" && !Array.isArray(question.answer)) {
       issues.push({ path: `${path}.answer`, message: "must be an array of choices" });
+    }
+    if (question.kind !== "multiple-choice" && Array.isArray(question.answer)) {
+      issues.push({ path: `${path}.answer`, message: "must be a string for this question type" });
     }
     if ((question.kind === "single-choice" || question.kind === "multiple-choice") && question.choices &&
         answerValues.some((answer) => !question.choices?.some((choice) => normalizeAnswer(choice) === normalizeAnswer(answer)))) {
