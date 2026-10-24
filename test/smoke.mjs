@@ -392,6 +392,16 @@ assert.doesNotMatch(markdown, /Answer/);
 assert.match(serializeAssessmentMarkdown(assessment, true), /\*\*Answer:\*\* 2\/4/);
 assert.match(serializeAssessmentMarkdown(assessment, false, "fr"), /Matière/);
 assert.match(serializeAssessmentMarkdown(assessment, false, "fr"), /Questions/);
+const markdownEscaped = serializeAssessmentMarkdown(createAssessment({
+  id: "markdown-safe",
+  title: "*Titre* [test]",
+  subject: "Sciences #1",
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question _formatée_", answer: "`réponse`", points: 1, hint: "Indice *important*" }],
+}), true);
+assert.match(markdownEscaped, /\\\*Titre\\\* \\\[test\\\]/);
+assert.match(markdownEscaped, /Question \\_formatée\\_/);
+assert.equal(markdownEscaped.includes("\\`réponse\\`"), true);
+assert.equal(markdownEscaped.includes("Indice \\*important\\*"), true);
 const html = serializeAssessmentHtml(assessment);
 assert.match(html, /<!doctype html>/);
 assert.match(html, /Mathématiques/);
