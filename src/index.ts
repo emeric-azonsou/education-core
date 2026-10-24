@@ -90,6 +90,7 @@ export interface AssessmentSummary {
 }
 
 export interface QuestionSelectionSummary {
+  questionIds: readonly string[];
   questionCount: number;
   totalPoints: number;
   estimatedSeconds: number;
@@ -868,7 +869,7 @@ export function summarizeQuestionSelection(questions: readonly Question[]): Ques
       estimatedQuestionCount += 1;
     }
   }
-  return { questionCount: questions.length, totalPoints, estimatedSeconds, estimatedQuestionCount, questionKinds, difficultyCounts, tagCounts };
+  return { questionIds: questions.map((question) => question.id), questionCount: questions.length, totalPoints, estimatedSeconds, estimatedQuestionCount, questionKinds, difficultyCounts, tagCounts };
 }
 
 /** Finds one question by its stable identifier. */
