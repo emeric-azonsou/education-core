@@ -2,7 +2,7 @@ export type QuestionKind = "single-choice" | "multiple-choice" | "true-false" | 
 export type Difficulty = "introductory" | "intermediate" | "advanced";
 export type AnswerValue = string | readonly string[];
 export type ExportLocale = "en" | "fr";
-export type QuestionOrder = "assessment" | "points-asc" | "points-desc" | "time-asc" | "time-desc" | "difficulty-asc" | "difficulty-desc";
+export type QuestionOrder = "assessment" | "points-asc" | "points-desc" | "time-asc" | "time-desc" | "difficulty-asc" | "difficulty-desc" | "kind-asc" | "kind-desc";
 
 export interface Question {
   id: string;
@@ -904,6 +904,11 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
       return (difficultyRank[left.difficulty] - difficultyRank[right.difficulty]) * direction;
     });
   }
+  if (filter.order === "kind-asc" || filter.order === "kind-desc") {
+    const direction = filter.order === "kind-asc" ? 1 : -1;
+    const kindRank: Record<QuestionKind, number> = { "single-choice": 0, "multiple-choice": 1, "true-false": 2, "short-answer": 3 };
+    selected.sort((left, right) => (kindRank[left.kind] - kindRank[right.kind]) * direction);
+  }
   const offset = filter.offset ?? 0;
   return filter.limit === undefined ? selected.slice(offset) : selected.slice(offset, offset + filter.limit);
 }
@@ -972,7 +977,7 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
   if (filter.limit !== undefined && (typeof filter.limit !== "number" || !Number.isInteger(filter.limit) || filter.limit < 0)) {
     throw new RangeError("Question limit must be a non-negative integer");
   }
-  if (filter.order !== undefined && !["assessment", "points-asc", "points-desc", "time-asc", "time-desc", "difficulty-asc", "difficulty-desc"].includes(filter.order as string)) {
+  if (filter.order !== undefined && !["assessment", "points-asc", "points-desc", "time-asc", "time-desc", "difficulty-asc", "difficulty-desc", "kind-asc", "kind-desc"].includes(filter.order as string)) {
     throw new RangeError(`Unsupported question order: ${String(filter.order)}`);
   }
   if (filter.minEstimatedSeconds !== undefined && (typeof filter.minEstimatedSeconds !== "number" || !Number.isFinite(filter.minEstimatedSeconds) || filter.minEstimatedSeconds < 0)) {
