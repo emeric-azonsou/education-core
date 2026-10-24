@@ -36,6 +36,12 @@ export interface ScoreResult {
   incorrectQuestionIds: readonly string[];
 }
 
+export interface AssessmentSummary {
+  questionCount: number;
+  totalPoints: number;
+  questionKinds: Readonly<Record<QuestionKind, number>>;
+}
+
 const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "true-false", "short-answer"]);
 
 /** Creates a normalized assessment and rejects invalid authoring data. */
@@ -121,5 +127,24 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
     percentage: assessment.totalPoints === 0 ? 0 : Math.round((earnedPoints / assessment.totalPoints) * 10000) / 100,
     correctQuestionIds,
     incorrectQuestionIds,
+  };
+}
+
+/** Returns lightweight metadata suitable for dashboards and content reviews. */
+export function summarizeAssessment(assessment: Assessment): AssessmentSummary {
+  const questionKinds: Record<QuestionKind, number> = {
+    "single-choice": 0,
+    "true-false": 0,
+    "short-answer": 0,
+  };
+
+  for (const question of assessment.questions) {
+    questionKinds[question.kind] += 1;
+  }
+
+  return {
+    questionCount: assessment.questions.length,
+    totalPoints: assessment.totalPoints,
+    questionKinds,
   };
 }
