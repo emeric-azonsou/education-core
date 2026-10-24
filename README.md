@@ -50,6 +50,9 @@ Each scoring result also includes `details`, `correctQuestionIds`,
 `incorrectQuestionIds` and `unansweredQuestionIds`, making it suitable for
 feedback screens and teacher dashboards.
 
+Use `classifyScore` to map a percentage to a performance band, and
+`scoreAssessmentByTag` to summarize progress by skill or learning topic.
+
 ## Design goals
 
 - no runtime dependencies;
