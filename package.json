@@ -2,6 +2,9 @@
   "name": "@classekit/education-core",
   "version": "0.2.0",
   "description": "Portable assessment primitives for francophone education software.",
+  "repository": { "type": "git", "url": "https://github.com/emeric-azonsou/education-core.git" },
+  "homepage": "https://github.com/emeric-azonsou/education-core#readme",
+  "bugs": { "url": "https://github.com/emeric-azonsou/education-core/issues" },
   "type": "module",
   "bin": {
     "classekit": "./bin/classekit.mjs"
@@ -22,7 +25,7 @@
     "verify": "npm run check && npm run test:api && npm run test:cli",
     "prepublishOnly": "npm run verify"
   },
-  "keywords": ["education", "assessment", "exams", "francophone", "typescript", "open-source"],
+  "keywords": ["education", "assessment", "assessment-engine", "exams", "francophone", "offline-first", "typescript", "open-source"],
   "license": "MIT",
   "publishConfig": { "access": "public" },
   "engines": { "node": ">=20" }

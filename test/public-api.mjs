@@ -20,6 +20,9 @@ assert.equal(packageJson.exports["."].import, "./dist/index.js");
 assert.equal(packageJson.exports["."].types, "./dist/index.d.ts");
 assert.equal(packageJson.bin.classekit, "./bin/classekit.mjs");
 assert.equal(packageJson.publishConfig.access, "public");
+assert.equal(packageJson.repository.url, "https://github.com/emeric-azonsou/education-core.git");
+assert.equal(packageJson.homepage, "https://github.com/emeric-azonsou/education-core#readme");
+assert.equal(packageJson.bugs.url, "https://github.com/emeric-azonsou/education-core/issues");
 
 const assessment = api.parseAssessment(await readFile("examples/assessment.json", "utf8"));
 assert.equal(assessment.id, "fractions-cli");

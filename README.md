@@ -1,230 +1,251 @@
-# @classekit/education-core
+# ClasseKit Education Core
 
-Portable assessment primitives for education software.
+[![CI](https://github.com/emeric-azonsou/education-core/actions/workflows/ci.yml/badge.svg)](https://github.com/emeric-azonsou/education-core/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js 20+](https://img.shields.io/badge/Node.js-20%2B-339933.svg)](package.json)
 
-This package gives TypeScript applications a small, dependency-free interface for authoring and scoring assessments. It is designed for francophone education tools, offline-first applications, and teams that need predictable validation before publishing content.
+Portable, dependency-free assessment primitives for education software.
 
-Assessment documents use schema version `1` by default. Unsupported versions
-are rejected explicitly so future migrations can be introduced safely.
+ClasseKit Education Core gives learning tools a small, predictable foundation
+for authoring, validating, scoring, filtering and exporting assessments. It is
+designed for francophone education products, offline-first applications and
+teams that need strong validation before content reaches learners.
 
-Set `passingPercentage` to customize the success threshold; scored results
-include a boolean `passed` field and default to a 50% threshold.
+The project is intentionally a core library, not a complete LMS and not an AI
+tutor. It provides the deterministic building blocks that an LMS, editor,
+mobile app or content pipeline can safely build on.
 
-Supported question types are `single-choice`, `multiple-choice`, `true-false`
-and `short-answer`. Multiple-choice answers are arrays and are scored without
-depending on their order.
+## Why this exists
 
-Short-answer questions may define `acceptedAnswers` for valid synonyms or
-alternate spellings. These alternatives are normalized like the main answer
-and preserved by CSV export/import.
+Education products often duplicate the same fragile logic in several places:
+question editors validate one shape, the learner app scores another, and export
+tools silently lose metadata. ClasseKit centralizes those rules in one typed,
+testable package.
 
-Set `durationMinutes` to publish a validated time limit or estimated duration;
-the value is included in Markdown and HTML exports.
+The result is a useful boundary between authored content and learner-facing
+experiences:
 
-Questions may define `estimatedSeconds` for a learner-facing time estimate. It
-is validated as a positive number and preserved by CSV, Markdown and HTML
-exports.
+- invalid assessments fail before publication;
+- scoring is deterministic and independent of network services;
+- exports preserve pedagogical metadata such as objectives, tags, difficulty,
+  hints and estimated time;
+- the same core works in server, browser-bundled and offline-first workflows.
 
-`learningObjectives` are also included in those exports so learners and
-teachers can see the intended outcomes of an assessment.
+## What you get
 
-Pass `{ partialCredit: true }` as the third argument to `scoreAssessment` to
-award proportional points for partially correct multiple-choice answers.
+### Assessment authoring and validation
 
-## Install
+- Four question kinds: `single-choice`, `multiple-choice`, `true-false` and
+  `short-answer`.
+- Schema versioning with explicit rejection of unsupported versions.
+- Validation for choices, answers, duplicate IDs, tags, objectives, points,
+  durations and passing thresholds.
+- Structured `AssessmentValidationError.issues` values for editor forms and CI.
+- Defensive copies so caller-owned arrays are not mutated by normalization.
+
+### Deterministic scoring
+
+- Case- and accent-insensitive answer matching.
+- Accepted alternatives for short answers.
+- Optional proportional partial credit for multiple-choice answers.
+- Per-question scoring details and lists of correct, incorrect and unanswered
+  questions.
+- Performance bands, tag-level progress and review recommendations.
+
+### Content selection and review
+
+`selectQuestions` supports composable filters for:
+
+- exact or excluded question IDs;
+- one required tag, all required tags, any matching tag or excluded tags;
+- difficulty and question kind;
+- minimum/maximum points;
+- minimum/maximum estimated time;
+- presence or absence of difficulty, tags or timing metadata;
+- deterministic ordering by points, time, difficulty or question kind;
+- deterministic seeded selection, offset and limit pagination.
+
+The CLI exposes the same workflow through `classekit select`, including
+metadata audits and machine-friendly `--ids-only`, `--count-only` and
+`--summary-only` output modes.
+
+### Portable exports
+
+- Validated JSON round trips.
+- CSV import/export for spreadsheet workflows.
+- Learner-facing Markdown with optional answer keys.
+- Standalone escaped HTML with accessible labels and correction states.
+- English and French export labels.
+
+Markdown and HTML exports escape user-authored content. The package has no
+runtime dependencies and does not require a database or external API.
+
+## Quick start
 
 ```bash
-npm install @classekit/education-core
+git clone https://github.com/emeric-azonsou/education-core.git
+cd education-core
+npm install
+npm run verify
 ```
 
-## Example
+The package is also structured for publication as `@classekit/education-core`;
+the repository workflow is the canonical way to try the current source.
 
 ```ts
-import { createAssessment, scoreAssessment } from "@classekit/education-core";
+import {
+  createAssessment,
+  scoreAssessment,
+  summarizeAssessment,
+} from "@classekit/education-core";
 
 const assessment = createAssessment({
   id: "fractions-1",
   title: "Fractions",
   subject: "Mathématiques",
+  difficulty: "introductory",
+  learningObjectives: ["Comparer des fractions simples"],
   questions: [
     {
       id: "q1",
-      prompt: "Quelle est la moitié de 10 ?",
       kind: "short-answer",
-      points: 2,
+      prompt: "Quelle est la moitié de 10 ?",
       answer: "5",
+      points: 2,
+      estimatedSeconds: 30,
     },
   ],
 });
 
 const result = scoreAssessment(assessment, { q1: "5" });
-// { earnedPoints: 2, totalPoints: 2, percentage: 100, ... }
+console.log(result.percentage); // 100
+console.log(summarizeAssessment(assessment).totalPoints); // 2
 ```
 
-For dashboards or content review screens, use `summarizeAssessment(assessment)`
-to obtain the number of questions, total points and distribution by question
-type.
+`createAssessment` validates the complete document and returns the normalized
+assessment used by the rest of the API. Invalid authoring data raises a typed
+error with field-level issues instead of producing a partially valid document.
 
-`getQuestionById` retrieves one question for editor screens, while
-`listQuestionsByIds`, `listQuestionsByKind`, `listQuestionsByDifficulty` and
-`listQuestionsByTag` support filtered views without changing the assessment.
-`listQuestionsByIds` preserves the requested order and rejects unknown IDs.
+## CLI workflow
 
-Assessments may also include `difficulty`, `tags` and `learningObjectives`.
-Use `serializeAssessment` and `parseAssessment` to persist validated JSON.
-Use `serializeScoreResult` and `parseScoreResult` to persist validated scoring
-results with the same runtime checks used by statistics.
-Use `validateScoreResult` when an editor or CI needs field-level structured
-issues without throwing, or run `classekit validate-score <result.json>` from
-the terminal.
-Answer scoring ignores differences in case and accents, so `élève` and
-`ELEVE` are treated as equivalent.
-
-Each scoring result also includes `details`, `correctQuestionIds`,
-`incorrectQuestionIds` and `unansweredQuestionIds`, making it suitable for
-feedback screens and teacher dashboards.
-
-Use `classifyScore` to map a percentage to a performance band, and
-`scoreAssessmentByTag` to summarize progress by skill or learning topic.
-
-`summarizeAssessment` reports question-type, difficulty and tag distributions
-for dashboard or content-review views, plus the number of questions with timing
-metadata and their combined estimated duration. Tag keys are normalized for
-case and accents.
-
-Use `summarizeScoreAttempts` to calculate averages, score ranges and pass
-rates across repeated learner attempts.
-
-Use `recommendReviewTags` to identify skills below a target percentage and
-guide targeted revision activities.
-
-The same aggregation is available from the CLI with `classekit stats` and any
-number of saved score-result JSON files.
-Use `classekit recommend` to output tags below a selected mastery threshold.
-Imported results are checked with `isScoreResult` before they are aggregated.
-The CLI validates submitted answer shapes before scoring or recommending review
-tags, and `--partial-credit` enables proportional multiple-choice scoring.
-
-Use `selectQuestions` to create focused views by tag, several required tags,
-difficulty, question kind or point range without mutating the original assessment.
-
-Use `shuffleAssessment(assessment, seed)` to generate reproducible question
-and choice variants while preserving the original assessment.
-
-When handling untrusted JSON, call `isAssessmentInput` before passing data to
-`createAssessment`. Invalid runtime shapes are rejected with a clear error.
-`isQuestionInput` is available when validating individual records from an
-importer or editor.
-Use `validateAnswers` before scoring to detect unknown question IDs, answer
-shapes incompatible with the question type, values outside the choices,
-duplicate selections and invalid true/false values.
-Malformed answer maps return structured validation issues instead of causing
-an internal iteration error, and malformed CSV arrays are rejected before they
-reach assessment validation.
-Score-result guards also verify numeric bounds and the shape of every question
-detail before repeated-attempt statistics are calculated.
-
-Invalid authoring data throws `AssessmentValidationError`, whose `issues`
-property contains structured `{ path, message }` entries for form UIs and CI.
-Authoring validation also rejects blank explanations, empty choices, duplicate
-learning objectives or multiple-choice answers, and answer shapes that do not
-match the question kind.
-
-## Design goals
-
-- no runtime dependencies;
-- deterministic validation and scoring;
-- immutable caller input handling;
-- useful in browser, server and offline-first applications;
-- small interface with room for adapters such as PDF/DOCX exporters.
-
-## Development
+After cloning the repository and installing dependencies:
 
 ```bash
-npm run check
-npm run test:cli
 npm run verify
 ```
 
-`verify` compiles the package, runs both smoke suites and checks the package
-contents with the same commands used by CI before publication.
-The public API smoke suite also checks package exports, declarations, examples
-and the executable CLI metadata.
-`npm run test:cli` also exercises the CLI end to end, including successful
-JSON/localized exports and expected non-zero error paths.
-
-## CLI
-
-After building, validate an assessment file or score submitted answers:
+Validate and inspect content:
 
 ```bash
-npx classekit validate examples/assessment.json
-npx classekit validate examples/assessment.json --json
-npx classekit validate-score examples/result-perfect.json
-npx classekit summary examples/assessment.json
-npx classekit select examples/assessment.json --tag=fractions --min-points=2
-npx classekit score examples/assessment.json examples/answers.json --partial-credit
-npx classekit recommend examples/assessment.json examples/answers.json --threshold=70
-npx classekit shuffle examples/assessment.json --seed=42
-npx classekit stats examples/result-perfect.json examples/result-empty.json
-npx classekit export-json examples/assessment.json
-npx classekit export-csv examples/assessment.json
-npx classekit export-md examples/assessment.json
-npx classekit export-md examples/assessment.json --answers
-npx classekit export-html examples/assessment.json
+node bin/classekit.mjs validate examples/assessment.json
+node bin/classekit.mjs validate examples/assessment.json --json
+node bin/classekit.mjs summary examples/assessment.json
+node bin/classekit.mjs select examples/assessment.json \
+  --any-tags=fractions,geometry \
+  --min-points=2 \
+  --order=difficulty-asc \
+  --limit=10
+node bin/classekit.mjs select examples/assessment.json --summary-only
+node bin/classekit.mjs select examples/assessment.json --untagged-only --count-only
 ```
 
-For spreadsheet workflows, use `serializeAssessmentCsv` and
-`parseAssessmentCsv`. The CSV format preserves choices, difficulty, tags,
-question timing, hints and explanations; the imported result is validated
-through the same core rules.
+Score and analyze learner attempts:
 
-`export-md` creates a learner-facing Markdown document by default. Pass
-`--answers` to include the correction key for teachers.
-User-provided Markdown content is escaped so titles, prompts and feedback do
-not accidentally change the exported document structure.
+```bash
+node bin/classekit.mjs score examples/assessment.json examples/answers.json --partial-credit
+node bin/classekit.mjs recommend examples/assessment.json examples/answers.json --threshold=70
+node bin/classekit.mjs stats examples/result-perfect.json examples/result-empty.json
+```
 
-`summary` emits compact assessment metadata for dashboards. `export-json`
-emits the normalized, validated assessment document.
+Export for other tools:
 
-`select` outputs the matching questions as JSON. Combine `--ids`, `--exclude-ids`, `--tag`, `--tags`
-and `--any-tags` to target exact, required or alternative topics, then use
-`--exclude-tags` to remove topics, and `--difficulty`, `--kind`, `--min-points`
-and `--max-points` to build focused
-question sets for review or quiz generation. Use `--min-time` and `--max-time`
-to require estimated timing metadata. Use `--order=points-asc`,
-`--order=points-desc`, `--order=time-asc`, `--order=time-desc`,
-`--order=difficulty-asc` or `--order=difficulty-desc` before `--offset` and
-`--limit` to rank and paginate the result. `--order=kind-asc` and
-`--order=kind-desc` group questions by interaction format. Unsupported filter
-values are rejected explicitly. Add `--seed=42` to randomize the selected
-order reproducibly. Add `--ids-only` when a pipeline only needs the selected
-question identifiers, or `--count-only` when it only needs the result count.
-Use `--summary-only` to receive the selected IDs, count, total points, estimated
-duration and composition by type, difficulty and tag. The API equivalent is
-`summarizeQuestionSelection`.
-These three output modes cannot be combined.
-Use `--timed-only` or `--untimed-only` to audit duration metadata; these modes
-are also mutually exclusive. Use `--with-difficulty`/`--without-difficulty`
-and `--tagged-only`/`--untagged-only` for the corresponding metadata audits.
+```bash
+node bin/classekit.mjs export-json examples/assessment.json
+node bin/classekit.mjs export-csv examples/assessment.json
+node bin/classekit.mjs export-md examples/assessment.json --locale=fr
+node bin/classekit.mjs export-html examples/assessment.json --locale=fr
+```
 
-Exports support English and French labels. For the CLI, pass
-`--locale=fr` or `--locale=en`.
-Unsupported locale values are rejected explicitly.
+Run `node bin/classekit.mjs` without a valid command to see the complete usage syntax.
 
-`serializeAssessmentHtml` and `export-html` produce escaped standalone HTML,
-so prompts and titles can safely contain user-provided text.
-The generated structure uses language metadata, ordered questions, fieldsets
-and labelled sections to support keyboard and assistive-technology workflows.
-Correction exports mark the selected answers and use radio controls for
-single-choice questions or checkboxes for multiple-choice questions.
-Question difficulty and explanations are included in the generated feedback.
-Questions may also define a non-empty `hint`, which is included in learner
-Markdown and HTML supports.
+## API map
+
+| Need | Main API |
+| --- | --- |
+| Create and validate content | `createAssessment`, `validateAssessmentInput` |
+| Score learner answers | `scoreAssessment`, `validateAnswers` |
+| Analyze attempts | `classifyScore`, `scoreAssessmentByTag`, `summarizeScoreAttempts` |
+| Select content | `selectQuestions`, `listQuestionsByIds`, `listQuestionsByTag` |
+| Summarize content | `summarizeAssessment`, `summarizeQuestionSelection` |
+| Persist results | `serializeAssessment`, `parseAssessment`, `serializeScoreResult`, `parseScoreResult` |
+| Export content | `serializeAssessmentCsv`, `serializeAssessmentMarkdown`, `serializeAssessmentHtml` |
+| Create variants | `shuffleAssessment` |
+
+## Design principles
+
+- **Deterministic first:** the same input and seed produce the same result.
+- **Validate at the boundary:** malformed authoring data is rejected before it
+  reaches scoring or export code.
+- **Offline-friendly:** core scoring and validation do not need a server,
+  database, model or network connection.
+- **Content-preserving:** exports retain learning objectives, tags, difficulty,
+  hints, explanations and timing metadata.
+- **Small surface area:** adapters can be added around the core without forcing
+  a framework, storage layer or runtime dependency on consumers.
+- **Privacy by default:** the library does not transmit learner answers or
+  authored content anywhere.
+
+## Quality and verification
+
+The repository includes:
+
+- TypeScript compilation with generated declarations;
+- public API export checks;
+- unit-style smoke coverage for validation, scoring and serialization;
+- end-to-end CLI smoke tests, including expected error paths;
+- CI on Node.js 20, 22 and 24;
+- a package dry-run check before publication.
+
+Run the full local gate with:
+
+```bash
+npm run verify
+```
+
+`verify` builds the package, runs the API and CLI suites, and checks the
+publishable package contents. No claim of production adoption is made yet:
+this is an early-stage open-source core whose next milestone is adoption by
+real education tools and contributors.
+
+## Repository structure
+
+```text
+src/index.ts          Core types, validation, scoring, selection and exports
+bin/classekit.mjs     CLI entry point
+examples/             Small assessment and score-result fixtures
+test/                 API, public-export and CLI smoke tests
+.github/workflows/    Node.js CI and package checks
+```
+
+## Roadmap
+
+- Add adapters for richer document formats without expanding the core runtime.
+- Grow fixtures for primary, secondary and vocational education contexts.
+- Add integrations contributed by education-tool maintainers.
+- Measure real-world usage and accessibility outcomes before making adoption
+  claims.
+
+Roadmap items are deliberately modest: correctness, portability and useful
+education workflows come before feature volume.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions should include tests and preserve the package's dependency-free runtime.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions should include tests,
+preserve the dependency-free runtime and explain the educational use case and
+compatibility impact.
+
+Please do not include student data, credentials, API keys or proprietary
+curriculum content in issues or pull requests.
 
 ## License
 
