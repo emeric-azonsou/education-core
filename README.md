@@ -119,6 +119,9 @@ detail before repeated-attempt statistics are calculated.
 
 Invalid authoring data throws `AssessmentValidationError`, whose `issues`
 property contains structured `{ path, message }` entries for form UIs and CI.
+Authoring validation also rejects blank explanations, empty choices, duplicate
+learning objectives or multiple-choice answers, and answer shapes that do not
+match the question kind.
 
 ## Design goals
 
