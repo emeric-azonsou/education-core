@@ -165,6 +165,8 @@ assert.throws(() => createAssessment({
 assert.equal(classifyScore(92), "mastery");
 assert.equal(classifyScore(68), "developing");
 assert.throws(() => classifyScore(101), /between 0 and 100/);
+assert.throws(() => classifyScore(70, /** @type {any} */ (null)), /thresholds.*ordered/);
+assert.throws(() => classifyScore(70, /** @type {any} */ ({ developing: 50, achieved: "70", mastery: 90 })), /thresholds.*ordered/);
 assert.deepEqual(scoreAssessmentByTag(assessment, { q1: "2/4", q2: "true" }), [
   { tag: "cycle-3", earnedPoints: 1, totalPoints: 1, percentage: 100 },
   { tag: "fractions", earnedPoints: 2, totalPoints: 2, percentage: 100 },
@@ -309,6 +311,11 @@ assert.throws(() => parseAssessmentCsv([
   csvHeader,
   'q1,short-answer,Question,ok,"[""ok"",3]",1,[],,,,,',
 ].join("\n"), { id: "bad-csv", title: "Bad CSV", subject: "Tests" }), /Invalid assessment CSV JSON field/);
+assert.throws(() => parseAssessmentCsv(`${csvHeader}\nq1,short-answer,"Question`, {
+  id: "bad-csv",
+  title: "Bad CSV",
+  subject: "Tests",
+}), /unterminated quoted field/);
 
 const markdown = serializeAssessmentMarkdown(assessment);
 assert.match(markdown, /# Fractions de base/);
@@ -432,7 +439,12 @@ assert.deepEqual(summarizeScoreAttempts([]), {
 assert.throws(() => summarizeScoreAttempts([perfectAttempt], 101), /between 0 and 100/);
 assert.equal(isScoreResult(perfectAttempt), true);
 assert.equal(isScoreResult({ percentage: 100 }), false);
+assert.equal(isScoreResult({ ...perfectAttempt, details: [{ questionId: "q1", expected: "ok", correct: true, earnedPoints: 2, maxPoints: 2, submitted: 7 }] }), false);
+assert.equal(isScoreResult({ ...perfectAttempt, earnedPoints: 99 }), false);
 assert.throws(() => summarizeScoreAttempts(/** @type {any} */ ([{ percentage: 100 }])), /Invalid score result/);
+assert.throws(() => summarizeScoreAttempts(/** @type {any} */ (null)), /Score results must be an array/);
+assert.throws(() => scoreAssessment(assessment, /** @type {any} */ ({ q1: { answer: "2/4" } })), /Answers must contain only strings/);
+assert.throws(() => scoreAssessment(assessment, {}, /** @type {any} */ ({ partialCredit: "yes" })), /Score options are invalid/);
 
 const unanswered = scoreAssessment(assessment, { q1: "" });
 assert.deepEqual(unanswered.unansweredQuestionIds, ["q1", "q2"]);
