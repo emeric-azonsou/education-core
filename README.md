@@ -143,10 +143,12 @@ After building, validate an assessment file or score submitted answers:
 ```bash
 npx classekit validate examples/assessment.json
 npx classekit validate examples/assessment.json --json
+npx classekit summary examples/assessment.json
 npx classekit score examples/assessment.json examples/answers.json --partial-credit
 npx classekit recommend examples/assessment.json examples/answers.json --threshold=70
 npx classekit shuffle examples/assessment.json --seed=42
 npx classekit stats examples/result-perfect.json examples/result-empty.json
+npx classekit export-json examples/assessment.json
 npx classekit export-csv examples/assessment.json
 npx classekit export-md examples/assessment.json
 npx classekit export-md examples/assessment.json --answers
@@ -160,6 +162,9 @@ through the same core rules.
 
 `export-md` creates a learner-facing Markdown document by default. Pass
 `--answers` to include the correction key for teachers.
+
+`summary` emits compact assessment metadata for dashboards. `export-json`
+emits the normalized, validated assessment document.
 
 Exports support English and French labels. For the CLI, pass
 `--locale=fr` or `--locale=en`.

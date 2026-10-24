@@ -11,6 +11,7 @@
 - Added score-result consistency checks for question IDs and point totals.
 - Added validated score-result JSON persistence helpers.
 - Added CLI answer validation and the `--partial-credit` scoring flag.
+- Added CLI `summary` and `export-json` commands with localized export coverage.
 
 ## 0.2.0 - 2026-10-24
 
