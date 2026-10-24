@@ -4,6 +4,7 @@ import {
   classifyScore,
   getQuestionById,
   isAssessmentInput,
+  isQuestionInput,
   listQuestionsByKind,
   normalizeAnswer,
   parseAssessmentCsv,
@@ -150,7 +151,15 @@ assert.deepEqual(validateAnswers(assessment, { q1: "2/4", unknown: "answer" }), 
 assert.equal(normalizeAnswer("ÉLÈVE"), "eleve");
 assert.equal(isAssessmentInput(assessment), true);
 assert.equal(isAssessmentInput({ id: "broken" }), false);
+assert.equal(isQuestionInput(assessment.questions[0]), true);
+assert.equal(isQuestionInput(null), false);
 assert.throws(() => createAssessment(/** @type {any} */ ({ id: "broken" })), /Invalid assessment input/);
+assert.deepEqual(validateAssessmentInput({
+  id: "malformed-question",
+  title: "Malformed",
+  subject: "Tests",
+  questions: [null],
+}), [{ path: "questions[0]", message: "must be a valid question object" }]);
 assert.equal(scoreAssessment(createAssessment({
   id: "accents",
   title: "Accents",
