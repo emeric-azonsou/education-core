@@ -84,6 +84,7 @@ rates across repeated learner attempts.
 
 The same aggregation is available from the CLI with `classekit stats` and any
 number of saved score-result JSON files.
+Imported results are checked with `isScoreResult` before they are aggregated.
 
 Use `selectQuestions` to create focused views by tag or difficulty without
 mutating the original assessment.
