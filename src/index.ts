@@ -809,42 +809,15 @@ export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, 
 
 /** Returns lightweight metadata suitable for dashboards and content reviews. */
 export function summarizeAssessment(assessment: Assessment): AssessmentSummary {
-  const questionKinds: Record<QuestionKind, number> = {
-    "single-choice": 0,
-    "multiple-choice": 0,
-    "true-false": 0,
-    "short-answer": 0,
-  };
-  const difficultyCounts: Record<Difficulty, number> = {
-    introductory: 0,
-    intermediate: 0,
-    advanced: 0,
-  };
-  const tagCounts: Record<string, number> = {};
-  let estimatedSeconds = 0;
-  let estimatedQuestionCount = 0;
-
-  for (const question of assessment.questions) {
-    questionKinds[question.kind] += 1;
-    if (question.difficulty) difficultyCounts[question.difficulty] += 1;
-    for (const tag of question.tags ?? []) {
-      const normalizedTag = normalizeAnswer(tag);
-      tagCounts[normalizedTag] = (tagCounts[normalizedTag] ?? 0) + 1;
-    }
-    if (question.estimatedSeconds !== undefined) {
-      estimatedSeconds += question.estimatedSeconds;
-      estimatedQuestionCount += 1;
-    }
-  }
-
+  const selectionSummary = summarizeQuestionSelection(assessment.questions);
   return {
-    questionCount: assessment.questions.length,
+    questionCount: selectionSummary.questionCount,
     totalPoints: assessment.totalPoints,
-    estimatedSeconds,
-    estimatedQuestionCount,
-    questionKinds,
-    difficultyCounts,
-    tagCounts,
+    estimatedSeconds: selectionSummary.estimatedSeconds,
+    estimatedQuestionCount: selectionSummary.estimatedQuestionCount,
+    questionKinds: selectionSummary.questionKinds,
+    difficultyCounts: selectionSummary.difficultyCounts,
+    tagCounts: selectionSummary.tagCounts,
   };
 }
 
