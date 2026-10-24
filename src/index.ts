@@ -1,4 +1,5 @@
 export type QuestionKind = "single-choice" | "true-false" | "short-answer";
+export type Difficulty = "introductory" | "intermediate" | "advanced";
 
 export interface Question {
   id: string;
@@ -8,6 +9,8 @@ export interface Question {
   choices?: readonly string[];
   answer: string;
   explanation?: string;
+  difficulty?: Difficulty;
+  tags?: readonly string[];
 }
 
 export interface AssessmentInput {
@@ -15,6 +18,9 @@ export interface AssessmentInput {
   title: string;
   subject: string;
   language?: string;
+  difficulty?: Difficulty;
+  tags?: readonly string[];
+  learningObjectives?: readonly string[];
   questions: readonly Question[];
 }
 
@@ -43,6 +49,7 @@ export interface AssessmentSummary {
 }
 
 const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "true-false", "short-answer"]);
+const SUPPORTED_DIFFICULTIES = new Set<Difficulty>(["introductory", "intermediate", "advanced"]);
 
 /** Creates a normalized assessment and rejects invalid authoring data. */
 export function createAssessment(input: AssessmentInput): Assessment {
@@ -51,9 +58,11 @@ export function createAssessment(input: AssessmentInput): Assessment {
     throw new Error(issues.map((issue) => `${issue.path}: ${issue.message}`).join("; "));
   }
 
-  const questions = input.questions.map((question) => question.choices
-    ? { ...question, choices: [...question.choices] }
-    : { ...question });
+  const questions = input.questions.map((question) => ({
+    ...question,
+    ...(question.choices ? { choices: [...question.choices] } : {}),
+    ...(question.tags ? { tags: [...question.tags] } : {}),
+  }));
 
   return {
     ...input,
@@ -69,6 +78,13 @@ export function validateAssessmentInput(input: AssessmentInput): ValidationIssue
   if (!input.id.trim()) issues.push({ path: "id", message: "must not be empty" });
   if (!input.title.trim()) issues.push({ path: "title", message: "must not be empty" });
   if (!input.subject.trim()) issues.push({ path: "subject", message: "must not be empty" });
+  if (input.difficulty && !SUPPORTED_DIFFICULTIES.has(input.difficulty)) {
+    issues.push({ path: "difficulty", message: "is not supported" });
+  }
+  validateTags(input.tags, "tags", issues);
+  if (input.learningObjectives?.some((objective) => !objective.trim())) {
+    issues.push({ path: "learningObjectives", message: "must not contain empty values" });
+  }
   if (input.questions.length === 0) issues.push({ path: "questions", message: "must contain at least one question" });
 
   const ids = new Set<string>();
@@ -79,6 +95,10 @@ export function validateAssessmentInput(input: AssessmentInput): ValidationIssue
     ids.add(question.id);
     if (!question.prompt.trim()) issues.push({ path: `${path}.prompt`, message: "must not be empty" });
     if (!SUPPORTED_KINDS.has(question.kind)) issues.push({ path: `${path}.kind`, message: "is not supported" });
+    if (question.difficulty && !SUPPORTED_DIFFICULTIES.has(question.difficulty)) {
+      issues.push({ path: `${path}.difficulty`, message: "is not supported" });
+    }
+    validateTags(question.tags, `${path}.tags`, issues);
     if (!Number.isFinite(question.points) || question.points <= 0) {
       issues.push({ path: `${path}.points`, message: "must be a positive number" });
     }
@@ -111,8 +131,9 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
   let earnedPoints = 0;
 
   for (const question of assessment.questions) {
-    const submitted = answers[question.id]?.trim().toLowerCase();
-    const expected = question.answer.trim().toLowerCase();
+    const rawAnswer = answers[question.id];
+    const submitted = rawAnswer === undefined ? undefined : normalizeAnswer(rawAnswer);
+    const expected = normalizeAnswer(question.answer);
     if (submitted && submitted === expected) {
       earnedPoints += question.points;
       correctQuestionIds.push(question.id);
@@ -128,6 +149,27 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
     correctQuestionIds,
     incorrectQuestionIds,
   };
+}
+
+/** Normalizes human-entered answers for accent- and case-insensitive comparison. */
+export function normalizeAnswer(value: string): string {
+  return value.trim().normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("fr-FR");
+}
+
+/** Serializes a validated assessment for storage or transport. */
+export function serializeAssessment(assessment: Assessment): string {
+  return JSON.stringify(assessment, null, 2);
+}
+
+/** Parses and validates an assessment JSON document. */
+export function parseAssessment(json: string): Assessment {
+  let input: unknown;
+  try {
+    input = JSON.parse(json);
+  } catch {
+    throw new Error("Invalid assessment JSON");
+  }
+  return createAssessment(input as AssessmentInput);
 }
 
 /** Returns lightweight metadata suitable for dashboards and content reviews. */
@@ -157,4 +199,13 @@ export function getQuestionById(assessment: Assessment, questionId: string): Que
 /** Returns all questions of a given kind while preserving their original order. */
 export function listQuestionsByKind(assessment: Assessment, kind: QuestionKind): readonly Question[] {
   return assessment.questions.filter((question) => question.kind === kind);
+}
+
+function validateTags(tags: readonly string[] | undefined, path: string, issues: ValidationIssue[]): void {
+  if (!tags) return;
+  if (tags.some((tag) => !tag.trim())) issues.push({ path, message: "must not contain empty values" });
+  const normalizedTags = tags.map((tag) => tag.trim().toLowerCase());
+  if (new Set(normalizedTags).size !== normalizedTags.length) {
+    issues.push({ path, message: "must not contain duplicates" });
+  }
 }
