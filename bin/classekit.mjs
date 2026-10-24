@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
-import { parseAssessment, recommendReviewTags, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, shuffleAssessment, summarizeScoreAttempts } from "../dist/index.js";
+import { parseAssessment, recommendReviewTags, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, shuffleAssessment, summarizeScoreAttempts, validateAssessmentInput } from "../dist/index.js";
 
 const args = process.argv.slice(2);
 const [command, assessmentPath, answersPath] = args;
@@ -13,7 +13,7 @@ const seedArgument = process.argv.find((argument) => argument.startsWith("--seed
 const seed = seedArgument ? Number(seedArgument.slice("--seed=".length)) : 1;
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> | classekit score <assessment.json> <answers.json> | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
+  console.error("Usage: classekit validate <assessment.json> [--json] | classekit score <assessment.json> <answers.json> | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -30,7 +30,15 @@ if (!command || !assessmentPath || !["validate", "score", "recommend", "shuffle"
       const results = await Promise.all(resultPaths.map(readJson));
       console.log(JSON.stringify(summarizeScoreAttempts(results), null, 2));
     } else {
-      const assessment = parseAssessment(await readFile(assessmentPath, "utf8"));
+      const rawAssessment = process.argv.includes("--json") && command === "validate"
+        ? await readJson(assessmentPath)
+        : undefined;
+      if (rawAssessment !== undefined) {
+        const issues = validateAssessmentInput(rawAssessment);
+        console.log(JSON.stringify({ valid: issues.length === 0, issues }, null, 2));
+        if (issues.length > 0) process.exitCode = 1;
+      } else {
+        const assessment = parseAssessment(await readFile(assessmentPath, "utf8"));
       if (command === "validate") {
       console.log(serializeAssessment(assessment));
       } else if (command === "export-csv") {
@@ -53,6 +61,7 @@ if (!command || !assessmentPath || !["validate", "score", "recommend", "shuffle"
       } else {
         const result = scoreAssessment(assessment, await readJson(answersPath));
         console.log(JSON.stringify(result, null, 2));
+        }
       }
       }
     }
