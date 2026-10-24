@@ -124,6 +124,7 @@ export interface QuestionFilter {
   tag?: string;
   tags?: readonly string[];
   anyTags?: readonly string[];
+  excludeTags?: readonly string[];
   difficulty?: Difficulty;
   kind?: QuestionKind;
   minPoints?: number;
@@ -875,13 +876,14 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
     const matchesTag = !filter.tag || question.tags?.some((tag) => normalizeAnswer(tag) === normalizeAnswer(filter.tag ?? ""));
     const matchesTags = !filter.tags?.length || filter.tags.every((tag) => question.tags?.some((questionTag) => normalizeAnswer(questionTag) === normalizeAnswer(tag)));
     const matchesAnyTags = !filter.anyTags?.length || filter.anyTags.some((tag) => question.tags?.some((questionTag) => normalizeAnswer(questionTag) === normalizeAnswer(tag)));
+    const matchesExcludedTags = !filter.excludeTags?.length || !question.tags?.some((questionTag) => filter.excludeTags?.some((tag) => normalizeAnswer(questionTag) === normalizeAnswer(tag)));
     const matchesDifficulty = !filter.difficulty || question.difficulty === filter.difficulty;
     const matchesKind = !filter.kind || question.kind === filter.kind;
     const matchesMinPoints = filter.minPoints === undefined || question.points >= filter.minPoints;
     const matchesMaxPoints = filter.maxPoints === undefined || question.points <= filter.maxPoints;
     const matchesMinTime = filter.minEstimatedSeconds === undefined || (question.estimatedSeconds !== undefined && question.estimatedSeconds >= filter.minEstimatedSeconds);
     const matchesMaxTime = filter.maxEstimatedSeconds === undefined || (question.estimatedSeconds !== undefined && question.estimatedSeconds <= filter.maxEstimatedSeconds);
-    return matchesIds && matchesTag && matchesTags && matchesAnyTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints && matchesMinTime && matchesMaxTime;
+    return matchesIds && matchesTag && matchesTags && matchesAnyTags && matchesExcludedTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints && matchesMinTime && matchesMaxTime;
   });
   if (filter.order === "points-asc") selected.sort((left, right) => left.points - right.points);
   if (filter.order === "points-desc") selected.sort((left, right) => right.points - left.points);
@@ -931,6 +933,9 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
   }
   if (filter.anyTags !== undefined && (!isStringArray(filter.anyTags) || filter.anyTags.length === 0 || filter.anyTags.some((tag) => !tag.trim()))) {
     throw new TypeError("Question filter anyTags must be a non-empty array of non-empty strings");
+  }
+  if (filter.excludeTags !== undefined && (!isStringArray(filter.excludeTags) || filter.excludeTags.length === 0 || filter.excludeTags.some((tag) => !tag.trim()))) {
+    throw new TypeError("Question filter excludeTags must be a non-empty array of non-empty strings");
   }
   if (filter.difficulty !== undefined && (!SUPPORTED_DIFFICULTIES.has(filter.difficulty as Difficulty))) {
     throw new RangeError(`Unsupported difficulty: ${String(filter.difficulty)}`);

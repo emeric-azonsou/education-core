@@ -14,6 +14,7 @@ const seed = seedArgument ? Number(seedArgument.slice("--seed=".length)) : 1;
 const tagArgument = process.argv.find((argument) => argument.startsWith("--tag="));
 const tagsArgument = process.argv.find((argument) => argument.startsWith("--tags="));
 const anyTagsArgument = process.argv.find((argument) => argument.startsWith("--any-tags="));
+const excludeTagsArgument = process.argv.find((argument) => argument.startsWith("--exclude-tags="));
 const idsArgument = process.argv.find((argument) => argument.startsWith("--ids="));
 const difficultyArgument = process.argv.find((argument) => argument.startsWith("--difficulty="));
 const kindArgument = process.argv.find((argument) => argument.startsWith("--kind="));
@@ -27,7 +28,7 @@ const maxTimeArgument = process.argv.find((argument) => argument.startsWith("--m
 const partialCredit = process.argv.includes("--partial-credit");
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit select <assessment.json> [--ids=q1,q2] [--tag=tag] [--tags=a,b] [--any-tags=a,b] [--difficulty=level] [--kind=kind] [--min-points=n] [--max-points=n] [--min-time=n] [--max-time=n] [--order=assessment|points-asc|points-desc] [--offset=n] [--limit=n] | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
+  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit select <assessment.json> [--ids=q1,q2] [--tag=tag] [--tags=a,b] [--any-tags=a,b] [--exclude-tags=a,b] [--difficulty=level] [--kind=kind] [--min-points=n] [--max-points=n] [--min-time=n] [--max-time=n] [--order=assessment|points-asc|points-desc] [--offset=n] [--limit=n] | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -64,12 +65,14 @@ if (!command || !assessmentPath || !["validate", "validate-score", "summary", "s
       } else if (command === "select") {
         const tags = tagsArgument?.slice("--tags=".length).split(",").map((tag) => tag.trim()).filter(Boolean);
         const anyTags = anyTagsArgument?.slice("--any-tags=".length).split(",").map((tag) => tag.trim());
+        const excludeTags = excludeTagsArgument?.slice("--exclude-tags=".length).split(",").map((tag) => tag.trim());
         const ids = idsArgument?.slice("--ids=".length).split(",").map((id) => id.trim());
         const selected = selectQuestions(assessment, {
           ...(ids ? { ids } : {}),
           ...(tagArgument ? { tag: tagArgument.slice("--tag=".length) } : {}),
           ...(tags?.length ? { tags } : {}),
           ...(anyTags ? { anyTags } : {}),
+          ...(excludeTags ? { excludeTags } : {}),
           ...(difficultyArgument ? { difficulty: difficultyArgument.slice("--difficulty=".length) } : {}),
           ...(kindArgument ? { kind: kindArgument.slice("--kind=".length) } : {}),
           ...(minPointsArgument ? { minPoints: Number(minPointsArgument.slice("--min-points=".length)) } : {}),
