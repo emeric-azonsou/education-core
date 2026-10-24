@@ -726,7 +726,11 @@ export function serializeAssessmentHtml(assessment: Assessment, includeAnswers =
   const labels = exportLabels(locale);
   const questions = assessment.questions.map((question, index) => {
     const choices = question.choices?.length
-      ? `<fieldset><legend>${labels.choices} ${index + 1}</legend><ul>${question.choices.map((choice, choiceIndex) => `<li><label><input type="checkbox" disabled name="q${index + 1}" value="${choiceIndex}"> ${escapeHtml(choice)}</label></li>`).join("")}</ul></fieldset>`
+      ? `<fieldset><legend>${labels.choices} ${index + 1}</legend><ul>${question.choices.map((choice, choiceIndex) => {
+        const inputType = question.kind === "single-choice" ? "radio" : "checkbox";
+        const checked = includeAnswers && getAnswerValues(question.answer).some((answer) => normalizeAnswer(choice) === normalizeAnswer(answer)) ? " checked" : "";
+        return `<li><label><input type="${inputType}"${checked} disabled name="q${index + 1}" value="${choiceIndex}"> ${escapeHtml(choice)}</label></li>`;
+      }).join("")}</ul></fieldset>`
       : "";
     const answer = includeAnswers ? `<p><strong>${labels.answer}:</strong> ${escapeHtml(getAnswerValues(question.answer).join(", "))}</p>` : "";
     const difficulty = question.difficulty ? `<p><strong>${labels.difficulty}:</strong> ${escapeHtml(question.difficulty)}</p>` : "";
