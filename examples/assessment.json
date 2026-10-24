@@ -1,0 +1,15 @@
+{
+  "id": "fractions-cli",
+  "title": "Fractions",
+  "subject": "Mathématiques",
+  "tags": ["fractions"],
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "short-answer",
+      "prompt": "Quelle est la moitié de 10 ?",
+      "answer": "5",
+      "points": 2
+    }
+  ]
+}
