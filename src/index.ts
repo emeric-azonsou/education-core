@@ -119,6 +119,7 @@ export interface ReviewRecommendation {
 }
 
 export interface QuestionFilter {
+  ids?: readonly string[];
   tag?: string;
   tags?: readonly string[];
   difficulty?: Difficulty;
@@ -865,13 +866,14 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
     throw new RangeError("Question minPoints must not exceed maxPoints");
   }
   const selected = assessment.questions.filter((question) => {
+    const matchesIds = !filter.ids || filter.ids.includes(question.id);
     const matchesTag = !filter.tag || question.tags?.some((tag) => normalizeAnswer(tag) === normalizeAnswer(filter.tag ?? ""));
     const matchesTags = !filter.tags?.length || filter.tags.every((tag) => question.tags?.some((questionTag) => normalizeAnswer(questionTag) === normalizeAnswer(tag)));
     const matchesDifficulty = !filter.difficulty || question.difficulty === filter.difficulty;
     const matchesKind = !filter.kind || question.kind === filter.kind;
     const matchesMinPoints = filter.minPoints === undefined || question.points >= filter.minPoints;
     const matchesMaxPoints = filter.maxPoints === undefined || question.points <= filter.maxPoints;
-    return matchesTag && matchesTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints;
+    return matchesIds && matchesTag && matchesTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints;
   });
   const offset = filter.offset ?? 0;
   return filter.limit === undefined ? selected.slice(offset) : selected.slice(offset, offset + filter.limit);
@@ -903,6 +905,14 @@ function validateTags(tags: readonly string[] | undefined, path: string, issues:
 
 function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilter {
   if (!isRecord(filter)) throw new TypeError("Question filter must be an object");
+  if (filter.ids !== undefined) {
+    if (!isStringArray(filter.ids) || filter.ids.length === 0 || filter.ids.some((id) => !id.trim())) {
+      throw new TypeError("Question filter ids must be a non-empty array of non-empty strings");
+    }
+    if (new Set(filter.ids).size !== filter.ids.length) {
+      throw new RangeError("Question filter ids must not contain duplicates");
+    }
+  }
   if (filter.tag !== undefined && typeof filter.tag !== "string") {
     throw new TypeError("Question filter tag must be a string");
   }
