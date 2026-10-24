@@ -154,6 +154,8 @@ assert.match(serializeAssessmentMarkdown(assessment, true), /\*\*Answer:\*\* 2\/
 const html = serializeAssessmentHtml(assessment);
 assert.match(html, /<!doctype html>/);
 assert.match(html, /Mathématiques/);
+assert.match(html, /aria-labelledby="question-1"/);
+assert.match(html, /<ol>/);
 assert.doesNotMatch(html, /Answer:/);
 assert.match(serializeAssessmentHtml(createAssessment({
   id: "unsafe",
