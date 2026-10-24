@@ -79,6 +79,7 @@ After building, validate an assessment file or score submitted answers:
 ```bash
 npx classekit validate examples/assessment.json
 npx classekit score examples/assessment.json examples/answers.json
+npx classekit export-csv examples/assessment.json
 ```
 
 For spreadsheet workflows, use `serializeAssessmentCsv` and
