@@ -10,6 +10,7 @@ import {
   parseAssessment,
   scoreAssessment,
   scoreAssessmentByTag,
+  selectQuestions,
   serializeAssessmentHtml,
   serializeAssessmentCsv,
   serializeAssessmentMarkdown,
@@ -35,6 +36,7 @@ const assessment = createAssessment({
       answer: "2/4",
       points: 2,
       tags: ["fractions"],
+      difficulty: "introductory",
     },
     {
       id: "q2",
@@ -43,6 +45,7 @@ const assessment = createAssessment({
       answer: "true",
       points: 1,
       tags: ["cycle-3"],
+      difficulty: "intermediate",
     },
   ],
 });
@@ -62,6 +65,8 @@ assert.deepEqual(summarizeAssessment(assessment), {
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
 assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
+assert.equal(selectQuestions(assessment, { tag: "FRACTIONS" }).length, 1);
+assert.equal(selectQuestions(assessment, { difficulty: "intermediate" })[0].id, "q2");
 const multipleChoice = createAssessment({
   id: "multiple",
   title: "Choix multiples",
