@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added selected question IDs to API and CLI selection summaries.
 - Enriched selected-question summaries with type, difficulty and tag distributions.
 - Added reusable selected-question summaries and the CLI `select --summary-only` mode.
 - Added the CLI `select --count-only` output mode for CI checks and scripts.

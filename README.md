@@ -200,7 +200,7 @@ to require estimated timing metadata. Use `--order=points-asc`,
 values are rejected explicitly. Add `--seed=42` to randomize the selected
 order reproducibly. Add `--ids-only` when a pipeline only needs the selected
 question identifiers, or `--count-only` when it only needs the result count.
-Use `--summary-only` to receive the selected count, total points, estimated
+Use `--summary-only` to receive the selected IDs, count, total points, estimated
 duration and composition by type, difficulty and tag. The API equivalent is
 `summarizeQuestionSelection`.
 
