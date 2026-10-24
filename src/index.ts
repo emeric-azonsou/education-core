@@ -2,7 +2,7 @@ export type QuestionKind = "single-choice" | "multiple-choice" | "true-false" | 
 export type Difficulty = "introductory" | "intermediate" | "advanced";
 export type AnswerValue = string | readonly string[];
 export type ExportLocale = "en" | "fr";
-export type QuestionOrder = "assessment" | "points-asc" | "points-desc" | "time-asc" | "time-desc";
+export type QuestionOrder = "assessment" | "points-asc" | "points-desc" | "time-asc" | "time-desc" | "difficulty-asc" | "difficulty-desc";
 
 export interface Question {
   id: string;
@@ -895,6 +895,15 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
       return (left.estimatedSeconds - right.estimatedSeconds) * direction;
     });
   }
+  if (filter.order === "difficulty-asc" || filter.order === "difficulty-desc") {
+    const direction = filter.order === "difficulty-asc" ? 1 : -1;
+    const difficultyRank: Record<Difficulty, number> = { introductory: 0, intermediate: 1, advanced: 2 };
+    selected.sort((left, right) => {
+      if (!left.difficulty) return 1;
+      if (!right.difficulty) return -1;
+      return (difficultyRank[left.difficulty] - difficultyRank[right.difficulty]) * direction;
+    });
+  }
   const offset = filter.offset ?? 0;
   return filter.limit === undefined ? selected.slice(offset) : selected.slice(offset, offset + filter.limit);
 }
@@ -963,7 +972,7 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
   if (filter.limit !== undefined && (typeof filter.limit !== "number" || !Number.isInteger(filter.limit) || filter.limit < 0)) {
     throw new RangeError("Question limit must be a non-negative integer");
   }
-  if (filter.order !== undefined && !["assessment", "points-asc", "points-desc", "time-asc", "time-desc"].includes(filter.order as string)) {
+  if (filter.order !== undefined && !["assessment", "points-asc", "points-desc", "time-asc", "time-desc", "difficulty-asc", "difficulty-desc"].includes(filter.order as string)) {
     throw new RangeError(`Unsupported question order: ${String(filter.order)}`);
   }
   if (filter.minEstimatedSeconds !== undefined && (typeof filter.minEstimatedSeconds !== "number" || !Number.isFinite(filter.minEstimatedSeconds) || filter.minEstimatedSeconds < 0)) {
