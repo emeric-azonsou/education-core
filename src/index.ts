@@ -146,6 +146,8 @@ export interface QuestionFilter {
   minEstimatedSeconds?: number;
   maxEstimatedSeconds?: number;
   hasEstimatedTime?: boolean;
+  hasDifficulty?: boolean;
+  hasTags?: boolean;
   seed?: number;
 }
 
@@ -909,7 +911,9 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
     const matchesMinTime = filter.minEstimatedSeconds === undefined || (question.estimatedSeconds !== undefined && question.estimatedSeconds >= filter.minEstimatedSeconds);
     const matchesMaxTime = filter.maxEstimatedSeconds === undefined || (question.estimatedSeconds !== undefined && question.estimatedSeconds <= filter.maxEstimatedSeconds);
     const matchesTimePresence = filter.hasEstimatedTime === undefined || (question.estimatedSeconds !== undefined) === filter.hasEstimatedTime;
-    return matchesIds && matchesTag && matchesTags && matchesAnyTags && matchesExcludedTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints && matchesMinTime && matchesMaxTime && matchesTimePresence;
+    const matchesDifficultyPresence = filter.hasDifficulty === undefined || (question.difficulty !== undefined) === filter.hasDifficulty;
+    const matchesTagsPresence = filter.hasTags === undefined || ((question.tags?.length ?? 0) > 0) === filter.hasTags;
+    return matchesIds && matchesTag && matchesTags && matchesAnyTags && matchesExcludedTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints && matchesMinTime && matchesMaxTime && matchesTimePresence && matchesDifficultyPresence && matchesTagsPresence;
   });
   if (filter.order === "points-asc") selected.sort((left, right) => left.points - right.points);
   if (filter.order === "points-desc") selected.sort((left, right) => right.points - left.points);
@@ -1021,6 +1025,12 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
   }
   if (filter.hasEstimatedTime !== undefined && typeof filter.hasEstimatedTime !== "boolean") {
     throw new TypeError("Question hasEstimatedTime must be a boolean");
+  }
+  if (filter.hasDifficulty !== undefined && typeof filter.hasDifficulty !== "boolean") {
+    throw new TypeError("Question hasDifficulty must be a boolean");
+  }
+  if (filter.hasTags !== undefined && typeof filter.hasTags !== "boolean") {
+    throw new TypeError("Question hasTags must be a boolean");
   }
 }
 
