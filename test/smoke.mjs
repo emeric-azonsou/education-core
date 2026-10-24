@@ -12,6 +12,7 @@ import {
   parseAssessment,
   scoreAssessment,
   scoreAssessmentByTag,
+  summarizeScoreAttempts,
   selectQuestions,
   shuffleAssessment,
   serializeAssessmentHtml,
@@ -322,6 +323,23 @@ assert.deepEqual(scoreAssessment(assessment, {
     },
   ],
 });
+const perfectAttempt = scoreAssessment(assessment, { q1: "2/4", q2: "true" });
+const emptyAttempt = scoreAssessment(assessment, {});
+assert.deepEqual(summarizeScoreAttempts([perfectAttempt, scoreAssessment(assessment, { q1: "2/4", q2: "false" }), emptyAttempt]), {
+  attemptCount: 3,
+  averagePercentage: 55.56,
+  highestPercentage: 100,
+  lowestPercentage: 0,
+  passRate: 66.67,
+});
+assert.deepEqual(summarizeScoreAttempts([]), {
+  attemptCount: 0,
+  averagePercentage: 0,
+  highestPercentage: 0,
+  lowestPercentage: 0,
+  passRate: 0,
+});
+assert.throws(() => summarizeScoreAttempts([perfectAttempt], 101), /between 0 and 100/);
 
 const unanswered = scoreAssessment(assessment, { q1: "" });
 assert.deepEqual(unanswered.unansweredQuestionIds, ["q1", "q2"]);
