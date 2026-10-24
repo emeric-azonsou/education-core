@@ -81,7 +81,8 @@ Use `classifyScore` to map a percentage to a performance band, and
 `scoreAssessmentByTag` to summarize progress by skill or learning topic.
 
 `summarizeAssessment` reports both the question-type distribution and the
-difficulty distribution for dashboard or content-review views.
+difficulty distribution for dashboard or content-review views, plus the number
+of questions with timing metadata and their combined estimated duration.
 
 Use `summarizeScoreAttempts` to calculate averages, score ranges and pass
 rates across repeated learner attempts.
@@ -94,8 +95,8 @@ number of saved score-result JSON files.
 Use `classekit recommend` to output tags below a selected mastery threshold.
 Imported results are checked with `isScoreResult` before they are aggregated.
 
-Use `selectQuestions` to create focused views by tag or difficulty without
-mutating the original assessment.
+Use `selectQuestions` to create focused views by tag, several required tags,
+difficulty or question kind without mutating the original assessment.
 
 Use `shuffleAssessment(assessment, seed)` to generate reproducible question
 and choice variants while preserving the original assessment.
