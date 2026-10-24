@@ -281,6 +281,7 @@ assert.match(html, /Hint:<\/strong> Cherche une fraction équivalente/);
 assert.match(html, /aria-labelledby="question-1"/);
 assert.match(html, /<ol>/);
 assert.match(serializeAssessmentHtml(assessment, false, "fr"), /Matière:<\/strong>/);
+assert.throws(() => serializeAssessmentMarkdown(assessment, false, /** @type {any} */ ("de")), /locale must be en or fr/);
 assert.doesNotMatch(html, /Answer:/);
 assert.match(serializeAssessmentHtml(createAssessment({
   id: "unsafe",
