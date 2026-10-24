@@ -46,6 +46,10 @@ Use `serializeAssessment` and `parseAssessment` to persist validated JSON.
 Answer scoring ignores differences in case and accents, so `élève` and
 `ELEVE` are treated as equivalent.
 
+Each scoring result also includes `details`, `correctQuestionIds`,
+`incorrectQuestionIds` and `unansweredQuestionIds`, making it suitable for
+feedback screens and teacher dashboards.
+
 ## Design goals
 
 - no runtime dependencies;
