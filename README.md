@@ -4,6 +4,9 @@ Portable assessment primitives for education software.
 
 This package gives TypeScript applications a small, dependency-free interface for authoring and scoring assessments. It is designed for francophone education tools, offline-first applications, and teams that need predictable validation before publishing content.
 
+Assessment documents use schema version `1` by default. Unsupported versions
+are rejected explicitly so future migrations can be introduced safely.
+
 Supported question types are `single-choice`, `multiple-choice`, `true-false`
 and `short-answer`. Multiple-choice answers are arrays and are scored without
 depending on their order.
