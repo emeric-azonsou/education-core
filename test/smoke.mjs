@@ -55,6 +55,7 @@ const assessment = createAssessment({
 });
 
 assert.equal(assessment.language, "fr");
+assert.equal(assessment.schemaVersion, 1);
 assert.equal(assessment.totalPoints, 3);
 assert.deepEqual(summarizeAssessment(assessment), {
   questionCount: 2,
@@ -192,6 +193,13 @@ assert.throws(() => createAssessment({
   durationMinutes: 0,
   questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1 }],
 }), /durationMinutes.*positive/);
+assert.throws(() => createAssessment({
+  id: "unsupported-schema",
+  title: "Invalid",
+  subject: "Tests",
+  schemaVersion: 2,
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1 }],
+}), /schemaVersion.*only schema version 1/);
 
 const csv = serializeAssessmentCsv(assessment);
 assert.match(csv, /id,kind,prompt,answer,acceptedAnswers,points,choices,difficulty,tags/);
