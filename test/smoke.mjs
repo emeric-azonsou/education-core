@@ -6,6 +6,7 @@ import {
   getQuestionById,
   isAssessmentInput,
   isQuestionInput,
+  isScoreResult,
   listQuestionsByKind,
   normalizeAnswer,
   parseAssessmentCsv,
@@ -362,6 +363,9 @@ assert.deepEqual(summarizeScoreAttempts([]), {
   passRate: 0,
 });
 assert.throws(() => summarizeScoreAttempts([perfectAttempt], 101), /between 0 and 100/);
+assert.equal(isScoreResult(perfectAttempt), true);
+assert.equal(isScoreResult({ percentage: 100 }), false);
+assert.throws(() => summarizeScoreAttempts(/** @type {any} */ ([{ percentage: 100 }])), /Invalid score result/);
 
 const unanswered = scoreAssessment(assessment, { q1: "" });
 assert.deepEqual(unanswered.unansweredQuestionIds, ["q1", "q2"]);
