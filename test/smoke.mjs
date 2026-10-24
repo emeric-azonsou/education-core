@@ -119,6 +119,29 @@ assert.deepEqual(scoreAssessment(assessment, {
   percentage: 66.67,
   correctQuestionIds: ["q1"],
   incorrectQuestionIds: ["q2"],
+  unansweredQuestionIds: [],
+  details: [
+    {
+      questionId: "q1",
+      submitted: "2/4",
+      expected: "2/4",
+      correct: true,
+      earnedPoints: 2,
+      maxPoints: 2,
+    },
+    {
+      questionId: "q2",
+      submitted: "false",
+      expected: "true",
+      correct: false,
+      earnedPoints: 0,
+      maxPoints: 1,
+    },
+  ],
 });
+
+const unanswered = scoreAssessment(assessment, { q1: "" });
+assert.deepEqual(unanswered.unansweredQuestionIds, ["q1", "q2"]);
+assert.deepEqual(unanswered.incorrectQuestionIds, ["q1", "q2"]);
 
 console.log("Smoke tests passed.");
