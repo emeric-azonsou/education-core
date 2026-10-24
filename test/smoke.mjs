@@ -57,6 +57,7 @@ const assessment = createAssessment({
 
 assert.equal(assessment.language, "fr");
 assert.equal(assessment.schemaVersion, 1);
+assert.equal(assessment.passingPercentage, 50);
 assert.equal(assessment.totalPoints, 3);
 assert.deepEqual(summarizeAssessment(assessment), {
   questionCount: 2,
@@ -201,6 +202,22 @@ assert.throws(() => createAssessment({
   schemaVersion: 2,
   questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1 }],
 }), /schemaVersion.*only schema version 1/);
+const strictAssessment = createAssessment({
+  id: "strict-pass",
+  title: "Strict",
+  subject: "Tests",
+  passingPercentage: 80,
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1 }],
+});
+assert.equal(scoreAssessment(strictAssessment, { q1: "ok" }).passed, true);
+assert.equal(scoreAssessment(strictAssessment, {}).passed, false);
+assert.throws(() => createAssessment({
+  id: "invalid-pass",
+  title: "Invalid",
+  subject: "Tests",
+  passingPercentage: 101,
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1 }],
+}), /passingPercentage.*between 0 and 100/);
 
 const csv = serializeAssessmentCsv(assessment);
 assert.match(csv, /id,kind,prompt,answer,acceptedAnswers,points,choices,difficulty,tags/);
@@ -304,6 +321,7 @@ assert.deepEqual(scoreAssessment(assessment, {
   correctQuestionIds: ["q1"],
   incorrectQuestionIds: ["q2"],
   unansweredQuestionIds: [],
+  passed: true,
   details: [
     {
       questionId: "q1",
