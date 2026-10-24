@@ -38,6 +38,9 @@ For dashboards or content review screens, use `summarizeAssessment(assessment)`
 to obtain the number of questions, total points and distribution by question
 type.
 
+`getQuestionById` retrieves one question for editor screens, while
+`listQuestionsByKind` supports filtered views without changing the assessment.
+
 ## Design goals
 
 - no runtime dependencies;
