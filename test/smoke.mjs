@@ -11,6 +11,7 @@ import {
   scoreAssessment,
   scoreAssessmentByTag,
   selectQuestions,
+  shuffleAssessment,
   serializeAssessmentHtml,
   serializeAssessmentCsv,
   serializeAssessmentMarkdown,
@@ -67,6 +68,11 @@ assert.equal(getQuestionById(assessment, "missing"), undefined);
 assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
 assert.equal(selectQuestions(assessment, { tag: "FRACTIONS" }).length, 1);
 assert.equal(selectQuestions(assessment, { difficulty: "intermediate" })[0].id, "q2");
+const shuffledA = shuffleAssessment(assessment, 42);
+const shuffledB = shuffleAssessment(assessment, 42);
+assert.deepEqual(shuffledA, shuffledB);
+assert.deepEqual(assessment.questions[0].choices, ["1/3", "2/4", "3/4"]);
+assert.throws(() => shuffleAssessment(assessment, 1.5), /seed must be an integer/);
 const multipleChoice = createAssessment({
   id: "multiple",
   title: "Choix multiples",
