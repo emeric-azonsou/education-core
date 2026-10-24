@@ -72,8 +72,9 @@ Assessments may also include `difficulty`, `tags` and `learningObjectives`.
 Use `serializeAssessment` and `parseAssessment` to persist validated JSON.
 Use `serializeScoreResult` and `parseScoreResult` to persist validated scoring
 results with the same runtime checks used by statistics.
-Use `validateScoreResult` when an editor or CI needs structured issues without
-throwing, or run `classekit validate-score <result.json>` from the terminal.
+Use `validateScoreResult` when an editor or CI needs field-level structured
+issues without throwing, or run `classekit validate-score <result.json>` from
+the terminal.
 Answer scoring ignores differences in case and accents, so `élève` and
 `ELEVE` are treated as equivalent.
 
