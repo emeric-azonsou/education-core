@@ -46,6 +46,10 @@ export interface ScoreResult {
   details: readonly QuestionScore[];
 }
 
+export interface ScoreOptions {
+  partialCredit?: boolean;
+}
+
 export interface QuestionScore {
   questionId: string;
   submitted?: AnswerValue;
@@ -193,7 +197,11 @@ export function validateAssessmentInput(input: AssessmentInput): ValidationIssue
 }
 
 /** Scores a submitted answer map against an assessment. */
-export function scoreAssessment(assessment: Assessment, answers: Readonly<Record<string, AnswerValue>>): ScoreResult {
+export function scoreAssessment(
+  assessment: Assessment,
+  answers: Readonly<Record<string, AnswerValue>>,
+  options: ScoreOptions = {},
+): ScoreResult {
   const correctQuestionIds: string[] = [];
   const incorrectQuestionIds: string[] = [];
   const unansweredQuestionIds: string[] = [];
@@ -207,8 +215,13 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
     const isUnanswered = submitted === undefined || submitted.length === 0;
     const correct = !isUnanswered && [expected, ...(question.acceptedAnswers ?? [])]
       .some((candidate) => answersMatch(submitted, candidate));
+    const earnedQuestionPoints = correct
+      ? question.points
+      : options.partialCredit && question.kind === "multiple-choice"
+        ? partialMultipleChoicePoints(submitted ?? "", expected, question.points)
+        : 0;
+    earnedPoints += earnedQuestionPoints;
     if (correct) {
-      earnedPoints += question.points;
       correctQuestionIds.push(question.id);
     } else {
       incorrectQuestionIds.push(question.id);
@@ -219,7 +232,7 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
       ...(rawAnswer === undefined ? {} : { submitted: rawAnswer }),
       expected,
       correct,
-      earnedPoints: correct ? question.points : 0,
+      earnedPoints: earnedQuestionPoints,
       maxPoints: question.points,
     });
   }
@@ -233,6 +246,16 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
     unansweredQuestionIds,
     details,
   };
+}
+
+function partialMultipleChoicePoints(submitted: string | string[], expected: AnswerValue, points: number): number {
+  if (!Array.isArray(submitted) || !Array.isArray(expected) || expected.length === 0) return 0;
+  const expectedAnswers = new Set(expected.map(normalizeAnswer));
+  const submittedAnswers = new Set(submitted);
+  const hasWrongAnswer = [...submittedAnswers].some((answer) => !expectedAnswers.has(answer));
+  if (hasWrongAnswer) return 0;
+  const ratio = submittedAnswers.size / expectedAnswers.size;
+  return Math.round(points * ratio * 100) / 100;
 }
 
 /** Checks submitted answer keys before scoring or persistence. */
