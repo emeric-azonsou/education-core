@@ -10,6 +10,7 @@ const expectedExports = [
   "serializeAssessment", "serializeAssessmentCsv", "serializeAssessmentHtml",
   "serializeAssessmentMarkdown", "serializeScoreResult", "shuffleAssessment",
   "summarizeAssessment", "summarizeScoreAttempts", "validateAnswers", "validateAssessmentInput", "validateScoreResult",
+  "summarizeQuestionSelection",
 ];
 
 for (const exportName of expectedExports) assert.ok(exportName in api, `Missing public export: ${exportName}`);

@@ -18,6 +18,7 @@ import {
   scoreAssessment,
   scoreAssessmentByTag,
   recommendReviewTags,
+  summarizeQuestionSelection,
   summarizeScoreAttempts,
   selectQuestions,
   shuffleAssessment,
@@ -105,6 +106,12 @@ assert.deepEqual(summarizeAssessment(assessment), {
     fractions: 1,
     "cycle-3": 1,
   },
+});
+assert.deepEqual(summarizeQuestionSelection(assessment.questions), {
+  questionCount: 2,
+  totalPoints: 3,
+  estimatedSeconds: 45,
+  estimatedQuestionCount: 1,
 });
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
