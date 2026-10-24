@@ -62,6 +62,10 @@ assert.deepEqual(JSON.parse(summaryOnlySelection.stdout), {
   tagCounts: {},
 });
 
+const conflictingSelectionModes = run("select", "examples/assessment.json", "--ids-only", "--count-only");
+assert.equal(conflictingSelectionModes.status, 1);
+assert.match(conflictingSelectionModes.stderr, /mutually exclusive/);
+
 const timedSelection = run("select", "examples/assessment.json", "--min-time=1");
 assert.equal(timedSelection.status, 0);
 assert.deepEqual(JSON.parse(timedSelection.stdout), []);
