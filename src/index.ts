@@ -148,3 +148,13 @@ export function summarizeAssessment(assessment: Assessment): AssessmentSummary {
     questionKinds,
   };
 }
+
+/** Finds one question by its stable identifier. */
+export function getQuestionById(assessment: Assessment, questionId: string): Question | undefined {
+  return assessment.questions.find((question) => question.id === questionId);
+}
+
+/** Returns all questions of a given kind while preserving their original order. */
+export function listQuestionsByKind(assessment: Assessment, kind: QuestionKind): readonly Question[] {
+  return assessment.questions.filter((question) => question.kind === kind);
+}
