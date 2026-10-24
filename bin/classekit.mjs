@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
-import { parseAssessment, parseScoreResult, recommendReviewTags, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, shuffleAssessment, summarizeScoreAttempts, validateAnswers, validateAssessmentInput } from "../dist/index.js";
+import { parseAssessment, parseScoreResult, recommendReviewTags, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, shuffleAssessment, summarizeAssessment, summarizeScoreAttempts, validateAnswers, validateAssessmentInput } from "../dist/index.js";
 
 const args = process.argv.slice(2);
 const [command, assessmentPath, answersPath] = args;
@@ -14,7 +14,7 @@ const seed = seedArgument ? Number(seedArgument.slice("--seed=".length)) : 1;
 const partialCredit = process.argv.includes("--partial-credit");
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> [--json] | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
+  console.error("Usage: classekit validate <assessment.json> [--json] | classekit summary <assessment.json> | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -22,7 +22,7 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
-if (!command || !assessmentPath || !["validate", "score", "recommend", "shuffle", "stats", "export-csv", "export-md", "export-html"].includes(command)) {
+if (!command || !assessmentPath || !["validate", "summary", "score", "recommend", "shuffle", "stats", "export-json", "export-csv", "export-md", "export-html"].includes(command)) {
   usage();
 } else {
   try {
@@ -41,6 +41,10 @@ if (!command || !assessmentPath || !["validate", "score", "recommend", "shuffle"
       } else {
         const assessment = parseAssessment(await readFile(assessmentPath, "utf8"));
       if (command === "validate") {
+      console.log(serializeAssessment(assessment));
+      } else if (command === "summary") {
+      console.log(JSON.stringify(summarizeAssessment(assessment), null, 2));
+      } else if (command === "export-json") {
       console.log(serializeAssessment(assessment));
       } else if (command === "export-csv") {
       console.log(serializeAssessmentCsv(assessment));
