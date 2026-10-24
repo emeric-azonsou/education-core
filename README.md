@@ -12,6 +12,9 @@ Short-answer questions may define `acceptedAnswers` for valid synonyms or
 alternate spellings. These alternatives are normalized like the main answer
 and preserved by CSV export/import.
 
+Set `durationMinutes` to publish a validated time limit or estimated duration;
+the value is included in Markdown and HTML exports.
+
 Pass `{ partialCredit: true }` as the third argument to `scoreAssessment` to
 award proportional points for partially correct multiple-choice answers.
 
