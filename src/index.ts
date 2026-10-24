@@ -387,6 +387,9 @@ export function summarizeScoreAttempts(
   if (results.length === 0) {
     return { attemptCount: 0, averagePercentage: 0, highestPercentage: 0, lowestPercentage: 0, passRate: 0 };
   }
+  if (results.some((result) => !isScoreResult(result))) {
+    throw new Error("Invalid score result");
+  }
   const percentages = results.map((result) => result.percentage);
   const passed = percentages.filter((percentage) => percentage >= passingPercentage).length;
   return {
@@ -396,6 +399,20 @@ export function summarizeScoreAttempts(
     lowestPercentage: Math.min(...percentages),
     passRate: roundPercentage((passed / results.length) * 100),
   };
+}
+
+/** Runtime guard for score results loaded from files or APIs. */
+export function isScoreResult(value: unknown): value is ScoreResult {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.earnedPoints === "number" && Number.isFinite(candidate.earnedPoints) &&
+    typeof candidate.totalPoints === "number" && Number.isFinite(candidate.totalPoints) &&
+    typeof candidate.percentage === "number" && Number.isFinite(candidate.percentage) &&
+    Array.isArray(candidate.correctQuestionIds) &&
+    Array.isArray(candidate.incorrectQuestionIds) &&
+    Array.isArray(candidate.unansweredQuestionIds) &&
+    Array.isArray(candidate.details) &&
+    typeof candidate.passed === "boolean";
 }
 
 /** Normalizes human-entered answers for accent- and case-insensitive comparison. */
