@@ -29,9 +29,11 @@ const partialCredit = process.argv.includes("--partial-credit");
 const idsOnly = process.argv.includes("--ids-only");
 const countOnly = process.argv.includes("--count-only");
 const summaryOnly = process.argv.includes("--summary-only");
+const timedOnly = process.argv.includes("--timed-only");
+const untimedOnly = process.argv.includes("--untimed-only");
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit select <assessment.json> [--ids=q1,q2] [--ids-only] [--count-only] [--summary-only] [--tag=tag] [--tags=a,b] [--any-tags=a,b] [--exclude-tags=a,b] [--difficulty=level] [--kind=kind] [--min-points=n] [--max-points=n] [--min-time=n] [--max-time=n] [--order=assessment|points-asc|points-desc|time-asc|time-desc|difficulty-asc|difficulty-desc|kind-asc|kind-desc] [--offset=n] [--limit=n] | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
+  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit select <assessment.json> [--ids=q1,q2] [--ids-only] [--count-only] [--summary-only] [--timed-only|--untimed-only] [--tag=tag] [--tags=a,b] [--any-tags=a,b] [--exclude-tags=a,b] [--difficulty=level] [--kind=kind] [--min-points=n] [--max-points=n] [--min-time=n] [--max-time=n] [--order=assessment|points-asc|points-desc|time-asc|time-desc|difficulty-asc|difficulty-desc|kind-asc|kind-desc] [--offset=n] [--limit=n] | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -69,6 +71,7 @@ if (!command || !assessmentPath || !["validate", "validate-score", "summary", "s
         if ([idsOnly, countOnly, summaryOnly].filter(Boolean).length > 1) {
           throw new Error("Selection output modes are mutually exclusive");
         }
+        if (timedOnly && untimedOnly) throw new Error("Timed selection modes are mutually exclusive");
         const tags = tagsArgument?.slice("--tags=".length).split(",").map((tag) => tag.trim()).filter(Boolean);
         const anyTags = anyTagsArgument?.slice("--any-tags=".length).split(",").map((tag) => tag.trim());
         const excludeTags = excludeTagsArgument?.slice("--exclude-tags=".length).split(",").map((tag) => tag.trim());
@@ -79,6 +82,7 @@ if (!command || !assessmentPath || !["validate", "validate-score", "summary", "s
           ...(tags?.length ? { tags } : {}),
           ...(anyTags ? { anyTags } : {}),
           ...(excludeTags ? { excludeTags } : {}),
+          ...((timedOnly || untimedOnly) ? { hasEstimatedTime: timedOnly } : {}),
           ...(difficultyArgument ? { difficulty: difficultyArgument.slice("--difficulty=".length) } : {}),
           ...(kindArgument ? { kind: kindArgument.slice("--kind=".length) } : {}),
           ...(minPointsArgument ? { minPoints: Number(minPointsArgument.slice("--min-points=".length)) } : {}),

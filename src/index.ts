@@ -145,6 +145,7 @@ export interface QuestionFilter {
   order?: QuestionOrder;
   minEstimatedSeconds?: number;
   maxEstimatedSeconds?: number;
+  hasEstimatedTime?: boolean;
   seed?: number;
 }
 
@@ -907,7 +908,8 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
     const matchesMaxPoints = filter.maxPoints === undefined || question.points <= filter.maxPoints;
     const matchesMinTime = filter.minEstimatedSeconds === undefined || (question.estimatedSeconds !== undefined && question.estimatedSeconds >= filter.minEstimatedSeconds);
     const matchesMaxTime = filter.maxEstimatedSeconds === undefined || (question.estimatedSeconds !== undefined && question.estimatedSeconds <= filter.maxEstimatedSeconds);
-    return matchesIds && matchesTag && matchesTags && matchesAnyTags && matchesExcludedTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints && matchesMinTime && matchesMaxTime;
+    const matchesTimePresence = filter.hasEstimatedTime === undefined || (question.estimatedSeconds !== undefined) === filter.hasEstimatedTime;
+    return matchesIds && matchesTag && matchesTags && matchesAnyTags && matchesExcludedTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints && matchesMinTime && matchesMaxTime && matchesTimePresence;
   });
   if (filter.order === "points-asc") selected.sort((left, right) => left.points - right.points);
   if (filter.order === "points-desc") selected.sort((left, right) => right.points - left.points);
@@ -1016,6 +1018,9 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
   }
   if (filter.seed !== undefined && (typeof filter.seed !== "number" || !Number.isInteger(filter.seed))) {
     throw new RangeError("Question selection seed must be an integer");
+  }
+  if (filter.hasEstimatedTime !== undefined && typeof filter.hasEstimatedTime !== "boolean") {
+    throw new TypeError("Question hasEstimatedTime must be a boolean");
   }
 }
 
