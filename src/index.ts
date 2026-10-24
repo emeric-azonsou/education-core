@@ -627,9 +627,49 @@ export function parseScoreResult(json: string): ScoreResult {
 
 /** Returns structured issues for a score result loaded from an external source. */
 export function validateScoreResult(value: unknown): ValidationIssue[] {
-  return isScoreResult(value)
-    ? []
-    : [{ path: "scoreResult", message: "must be valid and internally consistent" }];
+  if (!isRecord(value)) return [{ path: "scoreResult", message: "must be an object" }];
+  const issues: ValidationIssue[] = [];
+  const candidate = value;
+  if (typeof candidate.earnedPoints !== "number" || !Number.isFinite(candidate.earnedPoints) || candidate.earnedPoints < 0) {
+    issues.push({ path: "scoreResult.earnedPoints", message: "must be a non-negative number" });
+  }
+  if (typeof candidate.totalPoints !== "number" || !Number.isFinite(candidate.totalPoints) || candidate.totalPoints < 0) {
+    issues.push({ path: "scoreResult.totalPoints", message: "must be a non-negative number" });
+  }
+  if (typeof candidate.percentage !== "number" || !Number.isFinite(candidate.percentage) || candidate.percentage < 0 || candidate.percentage > 100) {
+    issues.push({ path: "scoreResult.percentage", message: "must be between 0 and 100" });
+  }
+  for (const field of ["correctQuestionIds", "incorrectQuestionIds", "unansweredQuestionIds"] as const) {
+    if (!isStringArray(candidate[field])) issues.push({ path: `scoreResult.${field}`, message: "must be an array of strings" });
+  }
+  if (!Array.isArray(candidate.details)) {
+    issues.push({ path: "scoreResult.details", message: "must be an array" });
+  } else {
+    candidate.details.forEach((detail, index) => {
+      if (!isQuestionScore(detail)) issues.push({ path: `scoreResult.details[${index}]`, message: "must be a valid question score" });
+    });
+  }
+  if (typeof candidate.passed !== "boolean") issues.push({ path: "scoreResult.passed", message: "must be a boolean" });
+  if (issues.length > 0) return issues;
+
+  const correctIds = new Set(candidate.correctQuestionIds as string[]);
+  const incorrectIds = new Set(candidate.incorrectQuestionIds as string[]);
+  const unansweredIds = new Set(candidate.unansweredQuestionIds as string[]);
+  const details = candidate.details as QuestionScore[];
+  const detailIds = new Set(details.map((detail) => detail.questionId));
+  if (correctIds.size !== (candidate.correctQuestionIds as string[]).length) issues.push({ path: "scoreResult.correctQuestionIds", message: "must not contain duplicates" });
+  if (incorrectIds.size !== (candidate.incorrectQuestionIds as string[]).length) issues.push({ path: "scoreResult.incorrectQuestionIds", message: "must not contain duplicates" });
+  if (unansweredIds.size !== (candidate.unansweredQuestionIds as string[]).length) issues.push({ path: "scoreResult.unansweredQuestionIds", message: "must not contain duplicates" });
+  if (detailIds.size !== details.length) issues.push({ path: "scoreResult.details", message: "must not contain duplicate question IDs" });
+  if ([...correctIds].some((id) => incorrectIds.has(id))) issues.push({ path: "scoreResult.questionIds", message: "correct and incorrect IDs must not overlap" });
+  if ([...unansweredIds].some((id) => !incorrectIds.has(id))) issues.push({ path: "scoreResult.unansweredQuestionIds", message: "must be included in incorrectQuestionIds" });
+  const earnedPoints = details.reduce((total, detail) => total + detail.earnedPoints, 0);
+  const totalPoints = details.reduce((total, detail) => total + detail.maxPoints, 0);
+  if (earnedPoints !== candidate.earnedPoints) issues.push({ path: "scoreResult.earnedPoints", message: "must equal the sum of detail points" });
+  if (totalPoints !== candidate.totalPoints) issues.push({ path: "scoreResult.totalPoints", message: "must equal the sum of detail maximums" });
+  const expectedPercentage = totalPoints === 0 ? 0 : Math.round((earnedPoints / totalPoints) * 10000) / 100;
+  if (expectedPercentage !== candidate.percentage) issues.push({ path: "scoreResult.percentage", message: "must match earnedPoints and totalPoints" });
+  return issues;
 }
 
 /** Exports assessment questions as a spreadsheet-friendly CSV document. */
