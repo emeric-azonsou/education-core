@@ -53,6 +53,9 @@ feedback screens and teacher dashboards.
 Use `classifyScore` to map a percentage to a performance band, and
 `scoreAssessmentByTag` to summarize progress by skill or learning topic.
 
+When handling untrusted JSON, call `isAssessmentInput` before passing data to
+`createAssessment`. Invalid runtime shapes are rejected with a clear error.
+
 ## Design goals
 
 - no runtime dependencies;
