@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added deterministic point-based ordering to question selection and pagination.
 - Added exact question-ID selection to the API and CLI filters.
 - Added offset and limit pagination to question selection APIs and the CLI.
 - Hardened question-filter APIs and CLI errors for unsupported types, difficulties and malformed filter values.
