@@ -26,6 +26,7 @@ export interface AssessmentInput {
   tags?: readonly string[];
   learningObjectives?: readonly string[];
   durationMinutes?: number;
+  passingPercentage?: number;
   questions: readonly Question[];
 }
 
@@ -33,6 +34,7 @@ export interface Assessment extends AssessmentInput {
   schemaVersion: number;
   language: string;
   totalPoints: number;
+  passingPercentage: number;
 }
 
 export interface ValidationIssue {
@@ -58,6 +60,7 @@ export interface ScoreResult {
   incorrectQuestionIds: readonly string[];
   unansweredQuestionIds: readonly string[];
   details: readonly QuestionScore[];
+  passed: boolean;
 }
 
 export interface ScoreOptions {
@@ -133,6 +136,7 @@ export function createAssessment(input: AssessmentInput): Assessment {
     ...input,
     schemaVersion: input.schemaVersion ?? 1,
     language: input.language ?? "fr",
+    passingPercentage: input.passingPercentage ?? 50,
     questions,
     totalPoints: questions.reduce((total, question) => total + question.points, 0),
   };
@@ -181,6 +185,10 @@ export function validateAssessmentInput(input: unknown): ValidationIssue[] {
   if (input.durationMinutes !== undefined &&
       (!Number.isFinite(input.durationMinutes) || input.durationMinutes <= 0)) {
     issues.push({ path: "durationMinutes", message: "must be a positive number" });
+  }
+  if (input.passingPercentage !== undefined &&
+      (!Number.isFinite(input.passingPercentage) || input.passingPercentage < 0 || input.passingPercentage > 100)) {
+    issues.push({ path: "passingPercentage", message: "must be between 0 and 100" });
   }
   if (input.questions.length === 0) issues.push({ path: "questions", message: "must contain at least one question" });
 
@@ -286,14 +294,16 @@ export function scoreAssessment(
     });
   }
 
+  const percentage = assessment.totalPoints === 0 ? 0 : Math.round((earnedPoints / assessment.totalPoints) * 10000) / 100;
   return {
     earnedPoints,
     totalPoints: assessment.totalPoints,
-    percentage: assessment.totalPoints === 0 ? 0 : Math.round((earnedPoints / assessment.totalPoints) * 10000) / 100,
+    percentage,
     correctQuestionIds,
     incorrectQuestionIds,
     unansweredQuestionIds,
     details,
+    passed: percentage >= assessment.passingPercentage,
   };
 }
 
