@@ -15,6 +15,7 @@ export interface Question {
   hint?: string;
   difficulty?: Difficulty;
   tags?: readonly string[];
+  estimatedSeconds?: number;
 }
 
 export interface AssessmentInput {
@@ -145,6 +146,8 @@ export function createAssessment(input: AssessmentInput): Assessment {
     schemaVersion: input.schemaVersion ?? 1,
     language: input.language ?? "fr",
     passingPercentage: input.passingPercentage ?? 50,
+    ...(input.tags ? { tags: [...input.tags] } : {}),
+    ...(input.learningObjectives ? { learningObjectives: [...input.learningObjectives] } : {}),
     questions,
     totalPoints: questions.reduce((total, question) => total + question.points, 0),
   };
@@ -212,6 +215,10 @@ export function validateAssessmentInput(input: unknown): ValidationIssue[] {
     ids.add(question.id);
     if (!question.prompt.trim()) issues.push({ path: `${path}.prompt`, message: "must not be empty" });
     if (question.hint !== undefined && !question.hint.trim()) issues.push({ path: `${path}.hint`, message: "must not be empty" });
+    if (question.estimatedSeconds !== undefined &&
+        (!Number.isFinite(question.estimatedSeconds) || question.estimatedSeconds <= 0)) {
+      issues.push({ path: `${path}.estimatedSeconds`, message: "must be a positive number" });
+    }
     if (!SUPPORTED_KINDS.has(question.kind)) issues.push({ path: `${path}.kind`, message: "is not supported" });
     if (question.difficulty && !SUPPORTED_DIFFICULTIES.has(question.difficulty)) {
       issues.push({ path: `${path}.difficulty`, message: "is not supported" });
@@ -497,7 +504,7 @@ export function parseAssessment(json: string): Assessment {
 
 /** Exports assessment questions as a spreadsheet-friendly CSV document. */
 export function serializeAssessmentCsv(assessment: Assessment): string {
-  const header = ["id", "kind", "prompt", "answer", "acceptedAnswers", "points", "choices", "difficulty", "tags"];
+  const header = ["id", "kind", "prompt", "answer", "acceptedAnswers", "points", "choices", "difficulty", "tags", "estimatedSeconds", "hint", "explanation"];
   const rows = assessment.questions.map((question) => [
     question.id,
     question.kind,
@@ -508,6 +515,9 @@ export function serializeAssessmentCsv(assessment: Assessment): string {
     JSON.stringify(question.choices ?? []),
     question.difficulty ?? "",
     JSON.stringify(question.tags ?? []),
+    question.estimatedSeconds === undefined ? "" : String(question.estimatedSeconds),
+    question.hint ?? "",
+    question.explanation ?? "",
   ]);
   return [header, ...rows].map((row) => row.map(escapeCsvCell).join(",")).join("\n");
 }
@@ -532,6 +542,7 @@ export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswe
       }
     }
     if (includeAnswers) lines.push(`   - **${labels.answer}:** ${getAnswerValues(question.answer).join(", ")}`);
+    if (question.estimatedSeconds !== undefined) lines.push(`   - **${labels.estimatedTime}:** ${question.estimatedSeconds} ${labels.seconds}`);
     if (question.explanation) lines.push(`   - **${labels.explanation}:** ${question.explanation}`);
     if (question.hint) lines.push(`   - **${labels.hint}:** ${question.hint}`);
     lines.push("");
@@ -551,7 +562,8 @@ export function serializeAssessmentHtml(assessment: Assessment, includeAnswers =
     const difficulty = question.difficulty ? `<p><strong>${labels.difficulty}:</strong> ${escapeHtml(question.difficulty)}</p>` : "";
     const explanation = question.explanation ? `<p><strong>${labels.explanation}:</strong> ${escapeHtml(question.explanation)}</p>` : "";
     const hint = question.hint ? `<p><strong>${labels.hint}:</strong> ${escapeHtml(question.hint)}</p>` : "";
-    return `<li><section aria-labelledby="question-${index + 1}"><h2 id="question-${index + 1}">${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${difficulty}${choices}${answer}${hint}${explanation}</section></li>`;
+    const estimatedTime = question.estimatedSeconds !== undefined ? `<p><strong>${labels.estimatedTime}:</strong> ${question.estimatedSeconds} ${labels.seconds}</p>` : "";
+    return `<li><section aria-labelledby="question-${index + 1}"><h2 id="question-${index + 1}">${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${difficulty}${estimatedTime}${choices}${answer}${hint}${explanation}</section></li>`;
   }).join("\n");
   const duration = assessment.durationMinutes ? `<p><strong>${labels.duration}:</strong> ${assessment.durationMinutes} ${labels.minutes}</p>` : "";
   const objectives = assessment.learningObjectives?.length ? `<p><strong>${labels.objectives}:</strong> ${assessment.learningObjectives.map(escapeHtml).join(", ")}</p>` : "";
@@ -562,7 +574,7 @@ export function serializeAssessmentHtml(assessment: Assessment, includeAnswers =
 export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, "id" | "title" | "subject">): Assessment {
   const rows = parseCsvRows(csv);
   const [header, ...data] = rows;
-  const expectedHeader = ["id", "kind", "prompt", "answer", "acceptedAnswers", "points", "choices", "difficulty", "tags"];
+  const expectedHeader = ["id", "kind", "prompt", "answer", "acceptedAnswers", "points", "choices", "difficulty", "tags", "estimatedSeconds", "hint", "explanation"];
   if (!header || header.join("|") !== expectedHeader.join("|")) {
     throw new Error("Invalid assessment CSV header");
   }
@@ -589,6 +601,9 @@ export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, 
       ...(choices.length ? { choices } : {}),
       ...(value(7) ? { difficulty: value(7) as Difficulty } : {}),
       ...(tags.length ? { tags } : {}),
+      ...(value(9) ? { estimatedSeconds: Number(value(9)) } : {}),
+      ...(value(10) ? { hint: value(10) } : {}),
+      ...(value(11) ? { explanation: value(11) } : {}),
     };
   });
   return createAssessment({ ...metadata, questions });
@@ -723,10 +738,12 @@ function exportLabels(locale: ExportLocale): {
   answer: string;
   explanation: string;
   hint: string;
+  estimatedTime: string;
+  seconds: string;
 } {
   return locale === "fr"
-    ? { subject: "Matière", language: "Langue", difficulty: "Difficulté", tags: "Tags", objectives: "Objectifs", duration: "Durée", minutes: "minutes", questions: "Questions", choices: "Choix pour la question", answer: "Réponse", explanation: "Explication", hint: "Indice" }
-    : { subject: "Subject", language: "Language", difficulty: "Difficulty", tags: "Tags", objectives: "Objectives", duration: "Duration", minutes: "minutes", questions: "Questions", choices: "Choices for question", answer: "Answer", explanation: "Explanation", hint: "Hint" };
+    ? { subject: "Matière", language: "Langue", difficulty: "Difficulté", tags: "Tags", objectives: "Objectifs", duration: "Durée", minutes: "minutes", questions: "Questions", choices: "Choix pour la question", answer: "Réponse", explanation: "Explication", hint: "Indice", estimatedTime: "Temps estimé", seconds: "secondes" }
+    : { subject: "Subject", language: "Language", difficulty: "Difficulty", tags: "Tags", objectives: "Objectives", duration: "Duration", minutes: "minutes", questions: "Questions", choices: "Choices for question", answer: "Answer", explanation: "Explanation", hint: "Hint", estimatedTime: "Estimated time", seconds: "seconds" };
 }
 
 function assertExportLocale(locale: ExportLocale): void {
