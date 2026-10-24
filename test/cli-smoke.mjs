@@ -25,6 +25,10 @@ const orderedSelection = run("select", "examples/assessment.json", "--order=poin
 assert.equal(orderedSelection.status, 0);
 assert.equal(JSON.parse(orderedSelection.stdout)[0].points, 2);
 
+const timeOrderedSelection = run("select", "examples/assessment.json", "--order=time-asc", "--limit=1");
+assert.equal(timeOrderedSelection.status, 0);
+assert.equal(JSON.parse(timeOrderedSelection.stdout)[0].id, "q1");
+
 const timedSelection = run("select", "examples/assessment.json", "--min-time=1");
 assert.equal(timedSelection.status, 0);
 assert.deepEqual(JSON.parse(timedSelection.stdout), []);

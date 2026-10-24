@@ -130,6 +130,8 @@ assert.equal(selectQuestions(assessment, { offset: 1, limit: 1 })[0].id, "q2");
 assert.deepEqual(selectQuestions(assessment, { ids: ["q2", "q1"] }).map((question) => question.id), ["q1", "q2"]);
 assert.deepEqual(selectQuestions(assessment, { order: "points-desc" }).map((question) => question.id), ["q1", "q2"]);
 assert.deepEqual(selectQuestions(assessment, { order: "points-asc" }).map((question) => question.id), ["q2", "q1"]);
+assert.deepEqual(selectQuestions(assessment, { order: "time-asc" }).map((question) => question.id), ["q1", "q2"]);
+assert.deepEqual(selectQuestions(assessment, { order: "time-desc" }).map((question) => question.id), ["q1", "q2"]);
 assert.deepEqual(selectQuestions(assessment, { minEstimatedSeconds: 30 }).map((question) => question.id), ["q1"]);
 assert.equal(selectQuestions(assessment, { maxEstimatedSeconds: 30 }).length, 0);
 assert.throws(() => selectQuestions(assessment, { minPoints: -1 }), /minPoints.*finite non-negative/);
