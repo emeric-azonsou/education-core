@@ -107,6 +107,13 @@ export interface ScoreStatistics {
   passRate: number;
 }
 
+export interface ReviewRecommendation {
+  tag: string;
+  percentage: number;
+  earnedPoints: number;
+  totalPoints: number;
+}
+
 export interface QuestionFilter {
   tag?: string;
   difficulty?: Difficulty;
@@ -401,6 +408,25 @@ export function summarizeScoreAttempts(
     lowestPercentage: Math.min(...percentages),
     passRate: roundPercentage((passed / results.length) * 100),
   };
+}
+
+/** Returns skill tags whose score is below the requested review threshold. */
+export function recommendReviewTags(
+  assessment: Assessment,
+  answers: Readonly<Record<string, AnswerValue>>,
+  threshold = 70,
+): readonly ReviewRecommendation[] {
+  if (!Number.isFinite(threshold) || threshold < 0 || threshold > 100) {
+    throw new RangeError("Review threshold must be between 0 and 100");
+  }
+  return scoreAssessmentByTag(assessment, answers)
+    .filter((tagScore) => tagScore.percentage < threshold)
+    .map((tagScore) => ({
+      tag: tagScore.tag,
+      percentage: tagScore.percentage,
+      earnedPoints: tagScore.earnedPoints,
+      totalPoints: tagScore.totalPoints,
+    }));
 }
 
 /** Runtime guard for score results loaded from files or APIs. */
