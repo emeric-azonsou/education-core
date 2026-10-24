@@ -1,5 +1,6 @@
-export type QuestionKind = "single-choice" | "true-false" | "short-answer";
+export type QuestionKind = "single-choice" | "multiple-choice" | "true-false" | "short-answer";
 export type Difficulty = "introductory" | "intermediate" | "advanced";
+export type AnswerValue = string | readonly string[];
 
 export interface Question {
   id: string;
@@ -7,7 +8,7 @@ export interface Question {
   kind: QuestionKind;
   points: number;
   choices?: readonly string[];
-  answer: string;
+  answer: AnswerValue;
   explanation?: string;
   difficulty?: Difficulty;
   tags?: readonly string[];
@@ -46,8 +47,8 @@ export interface ScoreResult {
 
 export interface QuestionScore {
   questionId: string;
-  submitted?: string;
-  expected: string;
+  submitted?: AnswerValue;
+  expected: AnswerValue;
   correct: boolean;
   earnedPoints: number;
   maxPoints: number;
@@ -74,7 +75,7 @@ export interface TagScore {
   percentage: number;
 }
 
-const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "true-false", "short-answer"]);
+const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "multiple-choice", "true-false", "short-answer"]);
 const SUPPORTED_DIFFICULTIES = new Set<Difficulty>(["introductory", "intermediate", "advanced"]);
 
 /** Creates a normalized assessment and rejects invalid authoring data. */
@@ -89,6 +90,7 @@ export function createAssessment(input: AssessmentInput): Assessment {
 
   const questions = input.questions.map((question) => ({
     ...question,
+    ...(Array.isArray(question.answer) ? { answer: [...question.answer] } : {}),
     ...(question.choices ? { choices: [...question.choices] } : {}),
     ...(question.tags ? { tags: [...question.tags] } : {}),
   }));
@@ -141,7 +143,8 @@ export function validateAssessmentInput(input: AssessmentInput): ValidationIssue
     if (!Number.isFinite(question.points) || question.points <= 0) {
       issues.push({ path: `${path}.points`, message: "must be a positive number" });
     }
-    if (question.kind === "single-choice" && (!question.choices || question.choices.length < 2)) {
+    if ((question.kind === "single-choice" || question.kind === "multiple-choice") &&
+        (!question.choices || question.choices.length < 2)) {
       issues.push({ path: `${path}.choices`, message: "must contain at least two choices" });
     }
     if (question.choices) {
@@ -150,21 +153,28 @@ export function validateAssessmentInput(input: AssessmentInput): ValidationIssue
         issues.push({ path: `${path}.choices`, message: "must not contain duplicates" });
       }
     }
-    if (question.kind === "single-choice" && question.choices &&
-        !question.choices.some((choice) => choice.trim().toLowerCase() === question.answer.trim().toLowerCase())) {
+    const answerValues = getAnswerValues(question.answer);
+    if (answerValues.length === 0) {
+      issues.push({ path: `${path}.answer`, message: "must not be empty" });
+    }
+    if (question.kind === "multiple-choice" && !Array.isArray(question.answer)) {
+      issues.push({ path: `${path}.answer`, message: "must be an array of choices" });
+    }
+    if ((question.kind === "single-choice" || question.kind === "multiple-choice") && question.choices &&
+        answerValues.some((answer) => !question.choices?.some((choice) => normalizeAnswer(choice) === normalizeAnswer(answer)))) {
       issues.push({ path: `${path}.answer`, message: "must match one of the choices" });
     }
-    if (question.kind === "true-false" && !["true", "false"].includes(question.answer.toLowerCase())) {
+    if (question.kind === "true-false" && typeof question.answer === "string" &&
+        !["true", "false"].includes(normalizeAnswer(question.answer))) {
       issues.push({ path: `${path}.answer`, message: "must be true or false" });
     }
-    if (!question.answer.trim()) issues.push({ path: `${path}.answer`, message: "must not be empty" });
   });
 
   return issues;
 }
 
 /** Scores a submitted answer map against an assessment. */
-export function scoreAssessment(assessment: Assessment, answers: Readonly<Record<string, string>>): ScoreResult {
+export function scoreAssessment(assessment: Assessment, answers: Readonly<Record<string, AnswerValue>>): ScoreResult {
   const correctQuestionIds: string[] = [];
   const incorrectQuestionIds: string[] = [];
   const unansweredQuestionIds: string[] = [];
@@ -173,10 +183,10 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
 
   for (const question of assessment.questions) {
     const rawAnswer = answers[question.id];
-    const submitted = rawAnswer === undefined ? undefined : normalizeAnswer(rawAnswer);
-    const expected = normalizeAnswer(question.answer);
+    const submitted = rawAnswer === undefined ? undefined : normalizeAnswerValue(rawAnswer);
+    const expected = question.answer;
     const isUnanswered = submitted === undefined || submitted.length === 0;
-    const correct = !isUnanswered && submitted === expected;
+    const correct = !isUnanswered && answersMatch(submitted, expected);
     if (correct) {
       earnedPoints += question.points;
       correctQuestionIds.push(question.id);
@@ -187,7 +197,7 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
     details.push({
       questionId: question.id,
       ...(rawAnswer === undefined ? {} : { submitted: rawAnswer }),
-      expected: question.answer,
+      expected,
       correct,
       earnedPoints: correct ? question.points : 0,
       maxPoints: question.points,
@@ -208,7 +218,7 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
 /** Checks submitted answer keys before scoring or persistence. */
 export function validateAnswers(
   assessment: Assessment,
-  answers: Readonly<Record<string, string>>,
+  answers: Readonly<Record<string, AnswerValue>>,
 ): ValidationIssue[] {
   const questionIds = new Set(assessment.questions.map((question) => question.id));
   return Object.keys(answers)
@@ -240,7 +250,7 @@ export function classifyScore(
 /** Aggregates a score by question tags for skill-oriented feedback. */
 export function scoreAssessmentByTag(
   assessment: Assessment,
-  answers: Readonly<Record<string, string>>,
+  answers: Readonly<Record<string, AnswerValue>>,
 ): readonly TagScore[] {
   const result = new Map<string, { earnedPoints: number; totalPoints: number }>();
   const score = scoreAssessment(assessment, answers);
@@ -263,6 +273,24 @@ export function scoreAssessmentByTag(
 /** Normalizes human-entered answers for accent- and case-insensitive comparison. */
 export function normalizeAnswer(value: string): string {
   return value.trim().normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("fr-FR");
+}
+
+function normalizeAnswerValue(value: AnswerValue): string | string[] {
+  return typeof value === "string" ? normalizeAnswer(value) : value.map((answer) => normalizeAnswer(answer)).filter(Boolean);
+}
+
+function getAnswerValues(value: AnswerValue): readonly string[] {
+  return typeof value === "string" ? [value] : [...value];
+}
+
+function answersMatch(submitted: string | string[], expected: AnswerValue): boolean {
+  if (Array.isArray(expected)) {
+    if (!Array.isArray(submitted)) return false;
+    const actual = [...submitted].sort();
+    const target = expected.map(normalizeAnswer).filter(Boolean).sort();
+    return actual.length === target.length && actual.every((value, index) => value === target[index]);
+  }
+  return typeof submitted === "string" && typeof expected === "string" && submitted === normalizeAnswer(expected);
 }
 
 /** Serializes a validated assessment for storage or transport. */
@@ -291,7 +319,7 @@ export function serializeAssessmentCsv(assessment: Assessment): string {
     question.id,
     question.kind,
     question.prompt,
-    question.answer,
+    serializeAnswerCell(question.answer),
     String(question.points),
     JSON.stringify(question.choices ?? []),
     question.difficulty ?? "",
@@ -311,11 +339,11 @@ export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswe
     lines.push(`${index + 1}. ${question.prompt} *(${question.points} point${question.points === 1 ? "" : "s"})*`);
     if (question.choices?.length) {
       for (const choice of question.choices) {
-        const marker = includeAnswers && normalizeAnswer(choice) === normalizeAnswer(question.answer) ? " [x]" : " [ ]";
+        const marker = includeAnswers && getAnswerValues(question.answer).some((answer) => normalizeAnswer(choice) === normalizeAnswer(answer)) ? " [x]" : " [ ]";
         lines.push(`   -${marker} ${choice}`);
       }
     }
-    if (includeAnswers) lines.push(`   - **Answer:** ${question.answer}`);
+    if (includeAnswers) lines.push(`   - **Answer:** ${getAnswerValues(question.answer).join(", ")}`);
     if (question.explanation) lines.push(`   - **Explanation:** ${question.explanation}`);
     lines.push("");
   });
@@ -328,7 +356,7 @@ export function serializeAssessmentHtml(assessment: Assessment, includeAnswers =
     const choices = question.choices?.length
       ? `<ul>${question.choices.map((choice) => `<li>${escapeHtml(choice)}</li>`).join("")}</ul>`
       : "";
-    const answer = includeAnswers ? `<p><strong>Answer:</strong> ${escapeHtml(question.answer)}</p>` : "";
+    const answer = includeAnswers ? `<p><strong>Answer:</strong> ${escapeHtml(getAnswerValues(question.answer).join(", "))}</p>` : "";
     return `<section><h2>${index + 1}. ${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${choices}${answer}</section>`;
   }).join("\n");
   return `<!doctype html><html lang="${escapeHtml(assessment.language)}"><head><meta charset="utf-8"><title>${escapeHtml(assessment.title)}</title></head><body><main><h1>${escapeHtml(assessment.title)}</h1><p><strong>Subject:</strong> ${escapeHtml(assessment.subject)}</p>${questions}</main></body></html>\n`;
@@ -357,7 +385,7 @@ export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, 
       id: value(0),
       kind: value(1) as QuestionKind,
       prompt: value(2),
-      answer: value(3),
+      answer: parseAnswerCell(value(3), index + 2),
       points: Number(value(4)),
       ...(choices.length ? { choices } : {}),
       ...(value(6) ? { difficulty: value(6) as Difficulty } : {}),
@@ -371,6 +399,7 @@ export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, 
 export function summarizeAssessment(assessment: Assessment): AssessmentSummary {
   const questionKinds: Record<QuestionKind, number> = {
     "single-choice": 0,
+    "multiple-choice": 0,
     "true-false": 0,
     "short-answer": 0,
   };
@@ -407,6 +436,21 @@ function validateTags(tags: readonly string[] | undefined, path: string, issues:
 
 function escapeCsvCell(value: string): string {
   return /[",\n\r]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+}
+
+function serializeAnswerCell(value: AnswerValue): string {
+  return typeof value === "string" ? value : JSON.stringify(value);
+}
+
+function parseAnswerCell(value: string, rowNumber: number): AnswerValue {
+  if (!value.trim().startsWith("[")) return value;
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed) && parsed.every((answer) => typeof answer === "string")) return parsed;
+  } catch {
+    // Fall through to the contextual error below.
+  }
+  throw new Error(`Invalid answer field on row ${rowNumber}`);
 }
 
 function escapeHtml(value: string): string {
