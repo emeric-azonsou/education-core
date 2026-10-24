@@ -9,6 +9,14 @@ const summary = run("summary", "examples/assessment.json");
 assert.equal(summary.status, 0);
 assert.equal(JSON.parse(summary.stdout).questionCount, 1);
 
+const selected = run("select", "examples/assessment.json", "--min-points=2", "--max-points=2");
+assert.equal(selected.status, 0);
+assert.equal(JSON.parse(selected.stdout)[0].id, "q1");
+
+const invalidSelection = run("select", "examples/assessment.json", "--min-points=3", "--max-points=1");
+assert.equal(invalidSelection.status, 1);
+assert.match(invalidSelection.stderr, /minPoints.*maxPoints/);
+
 const exported = run("export-json", "examples/assessment.json");
 assert.equal(exported.status, 0);
 assert.equal(JSON.parse(exported.stdout).id, "fractions-cli");
