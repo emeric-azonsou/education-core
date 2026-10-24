@@ -70,6 +70,8 @@ type.
 
 Assessments may also include `difficulty`, `tags` and `learningObjectives`.
 Use `serializeAssessment` and `parseAssessment` to persist validated JSON.
+Use `serializeScoreResult` and `parseScoreResult` to persist validated scoring
+results with the same runtime checks used by statistics.
 Answer scoring ignores differences in case and accents, so `élève` and
 `ELEVE` are treated as equivalent.
 
@@ -94,6 +96,8 @@ The same aggregation is available from the CLI with `classekit stats` and any
 number of saved score-result JSON files.
 Use `classekit recommend` to output tags below a selected mastery threshold.
 Imported results are checked with `isScoreResult` before they are aggregated.
+The CLI validates submitted answer shapes before scoring or recommending review
+tags, and `--partial-credit` enables proportional multiple-choice scoring.
 
 Use `selectQuestions` to create focused views by tag, several required tags,
 difficulty or question kind without mutating the original assessment.
@@ -139,7 +143,7 @@ After building, validate an assessment file or score submitted answers:
 ```bash
 npx classekit validate examples/assessment.json
 npx classekit validate examples/assessment.json --json
-npx classekit score examples/assessment.json examples/answers.json
+npx classekit score examples/assessment.json examples/answers.json --partial-credit
 npx classekit recommend examples/assessment.json examples/answers.json --threshold=70
 npx classekit shuffle examples/assessment.json --seed=42
 npx classekit stats examples/result-perfect.json examples/result-empty.json

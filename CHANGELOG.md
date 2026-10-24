@@ -9,6 +9,8 @@
 - Hardened score-result guards, scoring options, thresholds and unterminated CSV detection.
 - Added timing totals to assessment summaries and multi-criteria question selection.
 - Added score-result consistency checks for question IDs and point totals.
+- Added validated score-result JSON persistence helpers.
+- Added CLI answer validation and the `--partial-credit` scoring flag.
 
 ## 0.2.0 - 2026-10-24
 
