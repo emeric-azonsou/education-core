@@ -122,6 +122,8 @@ export interface QuestionFilter {
   tags?: readonly string[];
   difficulty?: Difficulty;
   kind?: QuestionKind;
+  minPoints?: number;
+  maxPoints?: number;
 }
 
 const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "multiple-choice", "true-false", "short-answer"]);
@@ -828,14 +830,30 @@ export function listQuestionsByKind(assessment: Assessment, kind: QuestionKind):
   return assessment.questions.filter((question) => question.kind === kind);
 }
 
+/** Returns all questions at a given difficulty while preserving their original order. */
+export function listQuestionsByDifficulty(assessment: Assessment, difficulty: Difficulty): readonly Question[] {
+  return assessment.questions.filter((question) => question.difficulty === difficulty);
+}
+
 /** Selects questions for adaptive or topic-specific quiz views. */
 export function selectQuestions(assessment: Assessment, filter: QuestionFilter): readonly Question[] {
+  if (filter.minPoints !== undefined && (!Number.isFinite(filter.minPoints) || filter.minPoints < 0)) {
+    throw new RangeError("Question minPoints must be a finite non-negative number");
+  }
+  if (filter.maxPoints !== undefined && (!Number.isFinite(filter.maxPoints) || filter.maxPoints < 0)) {
+    throw new RangeError("Question maxPoints must be a finite non-negative number");
+  }
+  if (filter.minPoints !== undefined && filter.maxPoints !== undefined && filter.minPoints > filter.maxPoints) {
+    throw new RangeError("Question minPoints must not exceed maxPoints");
+  }
   return assessment.questions.filter((question) => {
     const matchesTag = !filter.tag || question.tags?.some((tag) => normalizeAnswer(tag) === normalizeAnswer(filter.tag ?? ""));
     const matchesTags = !filter.tags?.length || filter.tags.every((tag) => question.tags?.some((questionTag) => normalizeAnswer(questionTag) === normalizeAnswer(tag)));
     const matchesDifficulty = !filter.difficulty || question.difficulty === filter.difficulty;
     const matchesKind = !filter.kind || question.kind === filter.kind;
-    return matchesTag && matchesTags && matchesDifficulty && matchesKind;
+    const matchesMinPoints = filter.minPoints === undefined || question.points >= filter.minPoints;
+    const matchesMaxPoints = filter.maxPoints === undefined || question.points <= filter.maxPoints;
+    return matchesTag && matchesTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints;
   });
 }
 
