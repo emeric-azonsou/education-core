@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added reusable selected-question summaries and the CLI `select --summary-only` mode.
 - Added the CLI `select --count-only` output mode for CI checks and scripts.
 - Added the CLI `select --ids-only` output mode for scripting and pipelines.
 - Added ordered question lookup by IDs with explicit duplicate and missing-ID errors.
