@@ -45,6 +45,10 @@ const idsOnlySelection = run("select", "examples/assessment.json", "--ids-only")
 assert.equal(idsOnlySelection.status, 0);
 assert.deepEqual(JSON.parse(idsOnlySelection.stdout), ["q1"]);
 
+const countOnlySelection = run("select", "examples/assessment.json", "--count-only", "--min-points=2");
+assert.equal(countOnlySelection.status, 0);
+assert.equal(JSON.parse(countOnlySelection.stdout), 1);
+
 const timedSelection = run("select", "examples/assessment.json", "--min-time=1");
 assert.equal(timedSelection.status, 0);
 assert.deepEqual(JSON.parse(timedSelection.stdout), []);
