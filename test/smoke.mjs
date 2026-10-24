@@ -178,6 +178,7 @@ assert.throws(() => selectQuestions(assessment, { anyTags: [] }), /anyTags.*non-
 assert.throws(() => selectQuestions(assessment, { excludeTags: [] }), /excludeTags.*non-empty array/);
 assert.throws(() => selectQuestions(assessment, { seed: 1.5 }), /seed.*integer/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ hasEstimatedTime: "yes" })), /hasEstimatedTime.*boolean/);
+assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ hasTags: "yes" })), /hasTags.*boolean/);
 assert.throws(() => selectQuestions(assessment, { offset: -1 }), /offset.*non-negative integer/);
 assert.throws(() => selectQuestions(assessment, { limit: 1.5 }), /limit.*non-negative integer/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ ids: [] })), /ids.*non-empty array/);
@@ -202,6 +203,8 @@ const multipleChoice = createAssessment({
     points: 2,
   }],
 });
+assert.equal(selectQuestions(multipleChoice, { hasDifficulty: false })[0].id, "q1");
+assert.equal(selectQuestions(multipleChoice, { hasTags: false })[0].id, "q1");
 assert.equal(scoreAssessment(multipleChoice, { q1: ["VÉNUS", "mercure"] }).percentage, 100);
 const partialResult = scoreAssessment(multipleChoice, { q1: ["mercure"] }, { partialCredit: true });
 assert.equal(partialResult.earnedPoints, 1);
