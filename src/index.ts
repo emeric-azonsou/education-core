@@ -81,6 +81,8 @@ export interface QuestionScore {
 export interface AssessmentSummary {
   questionCount: number;
   totalPoints: number;
+  estimatedSeconds: number;
+  estimatedQuestionCount: number;
   questionKinds: Readonly<Record<QuestionKind, number>>;
   difficultyCounts: Readonly<Record<Difficulty, number>>;
 }
@@ -117,7 +119,9 @@ export interface ReviewRecommendation {
 
 export interface QuestionFilter {
   tag?: string;
+  tags?: readonly string[];
   difficulty?: Difficulty;
+  kind?: QuestionKind;
 }
 
 const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "multiple-choice", "true-false", "short-answer"]);
@@ -484,7 +488,23 @@ export function isScoreResult(value: unknown): value is ScoreResult {
       !isStringArray(candidate.correctQuestionIds) || !isStringArray(candidate.incorrectQuestionIds) ||
       !isStringArray(candidate.unansweredQuestionIds) || !Array.isArray(candidate.details) ||
       !candidate.details.every(isQuestionScore) || typeof candidate.passed !== "boolean") return false;
-  return true;
+  const correctIds = new Set(candidate.correctQuestionIds);
+  const incorrectIds = new Set(candidate.incorrectQuestionIds);
+  const unansweredIds = new Set(candidate.unansweredQuestionIds);
+  const detailIds = new Set(candidate.details.map((detail) => detail.questionId));
+  if (correctIds.size !== candidate.correctQuestionIds.length ||
+      incorrectIds.size !== candidate.incorrectQuestionIds.length ||
+      unansweredIds.size !== candidate.unansweredQuestionIds.length ||
+      detailIds.size !== candidate.details.length ||
+      [...correctIds].some((id) => incorrectIds.has(id)) ||
+      [...unansweredIds].some((id) => !incorrectIds.has(id)) ||
+      detailIds.size !== correctIds.size + incorrectIds.size ||
+      [...detailIds].some((id) => !correctIds.has(id) && !incorrectIds.has(id))) return false;
+  const earnedPoints = candidate.details.reduce((total, detail) => total + detail.earnedPoints, 0);
+  const totalPoints = candidate.details.reduce((total, detail) => total + detail.maxPoints, 0);
+  const expectedPercentage = totalPoints === 0 ? 0 : Math.round((earnedPoints / totalPoints) * 10000) / 100;
+  return earnedPoints === candidate.earnedPoints && totalPoints === candidate.totalPoints &&
+    expectedPercentage === candidate.percentage;
 }
 
 /** Normalizes human-entered answers for accent- and case-insensitive comparison. */
@@ -668,15 +688,23 @@ export function summarizeAssessment(assessment: Assessment): AssessmentSummary {
     intermediate: 0,
     advanced: 0,
   };
+  let estimatedSeconds = 0;
+  let estimatedQuestionCount = 0;
 
   for (const question of assessment.questions) {
     questionKinds[question.kind] += 1;
     if (question.difficulty) difficultyCounts[question.difficulty] += 1;
+    if (question.estimatedSeconds !== undefined) {
+      estimatedSeconds += question.estimatedSeconds;
+      estimatedQuestionCount += 1;
+    }
   }
 
   return {
     questionCount: assessment.questions.length,
     totalPoints: assessment.totalPoints,
+    estimatedSeconds,
+    estimatedQuestionCount,
     questionKinds,
     difficultyCounts,
   };
@@ -696,8 +724,10 @@ export function listQuestionsByKind(assessment: Assessment, kind: QuestionKind):
 export function selectQuestions(assessment: Assessment, filter: QuestionFilter): readonly Question[] {
   return assessment.questions.filter((question) => {
     const matchesTag = !filter.tag || question.tags?.some((tag) => normalizeAnswer(tag) === normalizeAnswer(filter.tag ?? ""));
+    const matchesTags = !filter.tags?.length || filter.tags.every((tag) => question.tags?.some((questionTag) => normalizeAnswer(questionTag) === normalizeAnswer(tag)));
     const matchesDifficulty = !filter.difficulty || question.difficulty === filter.difficulty;
-    return matchesTag && matchesDifficulty;
+    const matchesKind = !filter.kind || question.kind === filter.kind;
+    return matchesTag && matchesTags && matchesDifficulty && matchesKind;
   });
 }
 
