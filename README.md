@@ -87,6 +87,7 @@ guide targeted revision activities.
 
 The same aggregation is available from the CLI with `classekit stats` and any
 number of saved score-result JSON files.
+Use `classekit recommend` to output tags below a selected mastery threshold.
 Imported results are checked with `isScoreResult` before they are aggregated.
 
 Use `selectQuestions` to create focused views by tag or difficulty without
@@ -126,6 +127,7 @@ After building, validate an assessment file or score submitted answers:
 ```bash
 npx classekit validate examples/assessment.json
 npx classekit score examples/assessment.json examples/answers.json
+npx classekit recommend examples/assessment.json examples/answers.json --threshold=70
 npx classekit stats examples/result-perfect.json examples/result-empty.json
 npx classekit export-csv examples/assessment.json
 npx classekit export-md examples/assessment.json
