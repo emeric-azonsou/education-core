@@ -504,6 +504,7 @@ export function serializeAssessmentCsv(assessment: Assessment): string {
 
 /** Renders an assessment as Markdown, optionally including the answer key. */
 export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswers = false, locale: ExportLocale = "en"): string {
+  assertExportLocale(locale);
   const labels = exportLabels(locale);
   const lines = [`# ${assessment.title}`, "", `- **${labels.subject}:** ${assessment.subject}`, `- **${labels.language}:** ${assessment.language}`];
   if (assessment.difficulty) lines.push(`- **${labels.difficulty}:** ${assessment.difficulty}`);
@@ -530,6 +531,7 @@ export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswe
 
 /** Renders an assessment as escaped, standalone HTML. */
 export function serializeAssessmentHtml(assessment: Assessment, includeAnswers = false, locale: ExportLocale = "en"): string {
+  assertExportLocale(locale);
   const labels = exportLabels(locale);
   const questions = assessment.questions.map((question, index) => {
     const choices = question.choices?.length
@@ -715,6 +717,10 @@ function exportLabels(locale: ExportLocale): {
   return locale === "fr"
     ? { subject: "Matière", language: "Langue", difficulty: "Difficulté", tags: "Tags", objectives: "Objectifs", duration: "Durée", minutes: "minutes", questions: "Questions", choices: "Choix pour la question", answer: "Réponse", explanation: "Explication", hint: "Indice" }
     : { subject: "Subject", language: "Language", difficulty: "Difficulty", tags: "Tags", objectives: "Objectives", duration: "Duration", minutes: "minutes", questions: "Questions", choices: "Choices for question", answer: "Answer", explanation: "Explanation", hint: "Hint" };
+}
+
+function assertExportLocale(locale: ExportLocale): void {
+  if (locale !== "en" && locale !== "fr") throw new RangeError("Export locale must be en or fr");
 }
 
 function parseCsvRows(csv: string): string[][] {
