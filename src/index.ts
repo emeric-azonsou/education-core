@@ -160,7 +160,14 @@ export function isAssessmentInput(value: unknown): value is AssessmentInput {
   return typeof candidate.id === "string" &&
     typeof candidate.title === "string" &&
     typeof candidate.subject === "string" &&
-    Array.isArray(candidate.questions);
+    Array.isArray(candidate.questions) &&
+    (candidate.schemaVersion === undefined || typeof candidate.schemaVersion === "number") &&
+    (candidate.language === undefined || typeof candidate.language === "string") &&
+    (candidate.difficulty === undefined || typeof candidate.difficulty === "string") &&
+    (candidate.tags === undefined || isStringArray(candidate.tags)) &&
+    (candidate.learningObjectives === undefined || isStringArray(candidate.learningObjectives)) &&
+    (candidate.durationMinutes === undefined || typeof candidate.durationMinutes === "number") &&
+    (candidate.passingPercentage === undefined || typeof candidate.passingPercentage === "number");
 }
 
 /** Runtime guard for individual question records. */
@@ -170,8 +177,15 @@ export function isQuestionInput(value: unknown): value is Question {
   return typeof candidate.id === "string" &&
     typeof candidate.prompt === "string" &&
     typeof candidate.kind === "string" &&
-    typeof candidate.points === "number" &&
-    (typeof candidate.answer === "string" || Array.isArray(candidate.answer));
+    typeof candidate.points === "number" && Number.isFinite(candidate.points) &&
+    (typeof candidate.answer === "string" || isStringArray(candidate.answer)) &&
+    (candidate.choices === undefined || isStringArray(candidate.choices)) &&
+    (candidate.acceptedAnswers === undefined || isStringArray(candidate.acceptedAnswers)) &&
+    (candidate.explanation === undefined || typeof candidate.explanation === "string") &&
+    (candidate.hint === undefined || typeof candidate.hint === "string") &&
+    (candidate.difficulty === undefined || typeof candidate.difficulty === "string") &&
+    (candidate.tags === undefined || isStringArray(candidate.tags)) &&
+    (candidate.estimatedSeconds === undefined || typeof candidate.estimatedSeconds === "number");
 }
 
 /** Returns all authoring issues without throwing, which is useful for editors and CI. */
@@ -275,6 +289,7 @@ export function scoreAssessment(
   answers: Readonly<Record<string, AnswerValue>>,
   options: ScoreOptions = {},
 ): ScoreResult {
+  if (!isRecord(answers)) throw new TypeError("Answers must be an object");
   const correctQuestionIds: string[] = [];
   const incorrectQuestionIds: string[] = [];
   const unansweredQuestionIds: string[] = [];
@@ -342,6 +357,7 @@ export function validateAnswers(
   assessment: Assessment,
   answers: Readonly<Record<string, AnswerValue>>,
 ): ValidationIssue[] {
+  if (!isRecord(answers)) return [{ path: "answers", message: "must be an object" }];
   const questions = new Map(assessment.questions.map((question) => [question.id, question]));
   const issues: ValidationIssue[] = [];
   for (const [questionId, answer] of Object.entries(answers)) {
@@ -585,9 +601,9 @@ export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, 
     let acceptedAnswers: string[] | undefined;
     let tags: string[] | undefined;
     try {
-      acceptedAnswers = JSON.parse(value(4) || "[]") as string[];
-      choices = JSON.parse(value(6) || "[]") as string[];
-      tags = JSON.parse(value(8) || "[]") as string[];
+      acceptedAnswers = parseStringArrayCell(value(4) || "[]", index + 2, "acceptedAnswers");
+      choices = parseStringArrayCell(value(6) || "[]", index + 2, "choices");
+      tags = parseStringArrayCell(value(8) || "[]", index + 2, "tags");
     } catch {
       throw new Error(`Invalid assessment CSV JSON field on row ${index + 2}`);
     }
@@ -677,6 +693,25 @@ function validateTags(tags: readonly string[] | undefined, path: string, issues:
   if (new Set(normalizedTags).size !== normalizedTags.length) {
     issues.push({ path, message: "must not contain duplicates" });
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function parseStringArrayCell(value: string, rowNumber: number, field: string): string[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new Error(`Invalid ${field} field on row ${rowNumber}`);
+  }
+  if (!isStringArray(parsed)) throw new Error(`Invalid ${field} field on row ${rowNumber}`);
+  return parsed;
 }
 
 function seededRandom(seed: number): () => number {
