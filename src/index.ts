@@ -79,6 +79,9 @@ const SUPPORTED_DIFFICULTIES = new Set<Difficulty>(["introductory", "intermediat
 
 /** Creates a normalized assessment and rejects invalid authoring data. */
 export function createAssessment(input: AssessmentInput): Assessment {
+  if (!isAssessmentInput(input)) {
+    throw new Error("Invalid assessment input");
+  }
   const issues = validateAssessmentInput(input);
   if (issues.length > 0) {
     throw new Error(issues.map((issue) => `${issue.path}: ${issue.message}`).join("; "));
@@ -96,6 +99,16 @@ export function createAssessment(input: AssessmentInput): Assessment {
     questions,
     totalPoints: questions.reduce((total, question) => total + question.points, 0),
   };
+}
+
+/** Runtime guard for data received from JSON, APIs or storage adapters. */
+export function isAssessmentInput(value: unknown): value is AssessmentInput {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.id === "string" &&
+    typeof candidate.title === "string" &&
+    typeof candidate.subject === "string" &&
+    Array.isArray(candidate.questions);
 }
 
 /** Returns all authoring issues without throwing, which is useful for editors and CI. */
@@ -265,7 +278,7 @@ export function parseAssessment(json: string): Assessment {
   } catch {
     throw new Error("Invalid assessment JSON");
   }
-  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+  if (!isAssessmentInput(input)) {
     throw new Error("Invalid assessment document");
   }
   return createAssessment(input as AssessmentInput);
