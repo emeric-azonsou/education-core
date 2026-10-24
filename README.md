@@ -205,7 +205,8 @@ duration and composition by type, difficulty and tag. The API equivalent is
 `summarizeQuestionSelection`.
 These three output modes cannot be combined.
 Use `--timed-only` or `--untimed-only` to audit duration metadata; these modes
-are also mutually exclusive.
+are also mutually exclusive. Use `--with-difficulty`/`--without-difficulty`
+and `--tagged-only`/`--untagged-only` for the corresponding metadata audits.
 
 Exports support English and French labels. For the CLI, pass
 `--locale=fr` or `--locale=en`.
