@@ -359,12 +359,12 @@ export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswe
 export function serializeAssessmentHtml(assessment: Assessment, includeAnswers = false): string {
   const questions = assessment.questions.map((question, index) => {
     const choices = question.choices?.length
-      ? `<ul>${question.choices.map((choice) => `<li>${escapeHtml(choice)}</li>`).join("")}</ul>`
+      ? `<fieldset><legend>Choices for question ${index + 1}</legend><ul>${question.choices.map((choice, choiceIndex) => `<li><label><input type="checkbox" disabled name="q${index + 1}" value="${choiceIndex}"> ${escapeHtml(choice)}</label></li>`).join("")}</ul></fieldset>`
       : "";
     const answer = includeAnswers ? `<p><strong>Answer:</strong> ${escapeHtml(getAnswerValues(question.answer).join(", "))}</p>` : "";
-    return `<section><h2>${index + 1}. ${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${choices}${answer}</section>`;
+    return `<li><section aria-labelledby="question-${index + 1}"><h2 id="question-${index + 1}">${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${choices}${answer}</section></li>`;
   }).join("\n");
-  return `<!doctype html><html lang="${escapeHtml(assessment.language)}"><head><meta charset="utf-8"><title>${escapeHtml(assessment.title)}</title></head><body><main><h1>${escapeHtml(assessment.title)}</h1><p><strong>Subject:</strong> ${escapeHtml(assessment.subject)}</p>${questions}</main></body></html>\n`;
+  return `<!doctype html><html lang="${escapeHtml(assessment.language)}"><head><meta charset="utf-8"><title>${escapeHtml(assessment.title)}</title></head><body><main><h1>${escapeHtml(assessment.title)}</h1><p><strong>Subject:</strong> ${escapeHtml(assessment.subject)}</p><ol>${questions}</ol></main></body></html>\n`;
 }
 
 /** Imports a question CSV document and validates the resulting assessment. */
