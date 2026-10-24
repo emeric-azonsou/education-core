@@ -94,6 +94,9 @@ export interface QuestionSelectionSummary {
   totalPoints: number;
   estimatedSeconds: number;
   estimatedQuestionCount: number;
+  questionKinds: Readonly<Record<QuestionKind, number>>;
+  difficultyCounts: Readonly<Record<Difficulty, number>>;
+  tagCounts: Readonly<Record<string, number>>;
 }
 
 export type PerformanceBand = "not-achieved" | "developing" | "achieved" | "mastery";
@@ -849,14 +852,23 @@ export function summarizeQuestionSelection(questions: readonly Question[]): Ques
   let totalPoints = 0;
   let estimatedSeconds = 0;
   let estimatedQuestionCount = 0;
+  const questionKinds: Record<QuestionKind, number> = { "single-choice": 0, "multiple-choice": 0, "true-false": 0, "short-answer": 0 };
+  const difficultyCounts: Record<Difficulty, number> = { introductory: 0, intermediate: 0, advanced: 0 };
+  const tagCounts: Record<string, number> = {};
   for (const question of questions) {
     totalPoints += question.points;
+    questionKinds[question.kind] += 1;
+    if (question.difficulty) difficultyCounts[question.difficulty] += 1;
+    for (const tag of question.tags ?? []) {
+      const normalizedTag = normalizeAnswer(tag);
+      tagCounts[normalizedTag] = (tagCounts[normalizedTag] ?? 0) + 1;
+    }
     if (question.estimatedSeconds !== undefined) {
       estimatedSeconds += question.estimatedSeconds;
       estimatedQuestionCount += 1;
     }
   }
-  return { questionCount: questions.length, totalPoints, estimatedSeconds, estimatedQuestionCount };
+  return { questionCount: questions.length, totalPoints, estimatedSeconds, estimatedQuestionCount, questionKinds, difficultyCounts, tagCounts };
 }
 
 /** Finds one question by its stable identifier. */
