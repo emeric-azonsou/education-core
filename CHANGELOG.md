@@ -19,6 +19,7 @@
 - Added structured score-result validation and the `validate-score` CLI command.
 - Added field-level diagnostics for malformed score results and inconsistent totals.
 - Improved HTML correction exports with selected states and appropriate input controls.
+- Escaped user-provided Markdown content in titles, questions and feedback fields.
 - Added a unified `verify`/`prepublishOnly` gate and expanded CI package checks.
 
 ## 0.2.0 - 2026-10-24

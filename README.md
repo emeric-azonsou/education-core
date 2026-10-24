@@ -177,6 +177,8 @@ through the same core rules.
 
 `export-md` creates a learner-facing Markdown document by default. Pass
 `--answers` to include the correction key for teachers.
+User-provided Markdown content is escaped so titles, prompts and feedback do
+not accidentally change the exported document structure.
 
 `summary` emits compact assessment metadata for dashboards. `export-json`
 emits the normalized, validated assessment document.
