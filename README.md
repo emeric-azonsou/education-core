@@ -203,6 +203,7 @@ question identifiers, or `--count-only` when it only needs the result count.
 Use `--summary-only` to receive the selected IDs, count, total points, estimated
 duration and composition by type, difficulty and tag. The API equivalent is
 `summarizeQuestionSelection`.
+These three output modes cannot be combined.
 
 Exports support English and French labels. For the CLI, pass
 `--locale=fr` or `--locale=en`.
