@@ -842,6 +842,21 @@ export function getQuestionById(assessment: Assessment, questionId: string): Que
   return assessment.questions.find((question) => question.id === questionId);
 }
 
+/** Returns questions in the exact requested order and rejects unknown or duplicate IDs. */
+export function listQuestionsByIds(assessment: Assessment, questionIds: readonly string[]): readonly Question[] {
+  if (!Array.isArray(questionIds) || questionIds.length === 0 || questionIds.some((questionId) => typeof questionId !== "string" || !questionId.trim())) {
+    throw new TypeError("Question IDs must be a non-empty array of non-empty strings");
+  }
+  if (new Set(questionIds).size !== questionIds.length) {
+    throw new RangeError("Question IDs must not contain duplicates");
+  }
+  return questionIds.map((questionId) => {
+    const question = getQuestionById(assessment, questionId);
+    if (!question) throw new RangeError(`Unknown question ID: ${questionId}`);
+    return question;
+  });
+}
+
 /** Returns all questions of a given kind while preserving their original order. */
 export function listQuestionsByKind(assessment: Assessment, kind: QuestionKind): readonly Question[] {
   if (!SUPPORTED_KINDS.has(kind)) throw new RangeError(`Unsupported question kind: ${String(kind)}`);
