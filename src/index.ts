@@ -322,6 +322,18 @@ export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswe
   return `${lines.join("\n").trim()}\n`;
 }
 
+/** Renders an assessment as escaped, standalone HTML. */
+export function serializeAssessmentHtml(assessment: Assessment, includeAnswers = false): string {
+  const questions = assessment.questions.map((question, index) => {
+    const choices = question.choices?.length
+      ? `<ul>${question.choices.map((choice) => `<li>${escapeHtml(choice)}</li>`).join("")}</ul>`
+      : "";
+    const answer = includeAnswers ? `<p><strong>Answer:</strong> ${escapeHtml(question.answer)}</p>` : "";
+    return `<section><h2>${index + 1}. ${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${choices}${answer}</section>`;
+  }).join("\n");
+  return `<!doctype html><html lang="${escapeHtml(assessment.language)}"><head><meta charset="utf-8"><title>${escapeHtml(assessment.title)}</title></head><body><main><h1>${escapeHtml(assessment.title)}</h1><p><strong>Subject:</strong> ${escapeHtml(assessment.subject)}</p>${questions}</main></body></html>\n`;
+}
+
 /** Imports a question CSV document and validates the resulting assessment. */
 export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, "id" | "title" | "subject">): Assessment {
   const rows = parseCsvRows(csv);
@@ -395,6 +407,16 @@ function validateTags(tags: readonly string[] | undefined, path: string, issues:
 
 function escapeCsvCell(value: string): string {
   return /[",\n\r]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character] ?? character);
 }
 
 function parseCsvRows(csv: string): string[][] {
