@@ -29,6 +29,10 @@ const timedSelection = run("select", "examples/assessment.json", "--min-time=1")
 assert.equal(timedSelection.status, 0);
 assert.deepEqual(JSON.parse(timedSelection.stdout), []);
 
+const anyTagSelection = run("select", "examples/assessment.json", "--any-tags=fractions");
+assert.equal(anyTagSelection.status, 0);
+assert.deepEqual(JSON.parse(anyTagSelection.stdout), []);
+
 const invalidSelection = run("select", "examples/assessment.json", "--min-points=3", "--max-points=1");
 assert.equal(invalidSelection.status, 1);
 assert.match(invalidSelection.stderr, /minPoints.*maxPoints/);

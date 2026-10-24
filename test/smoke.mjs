@@ -118,6 +118,8 @@ assert.equal(selectQuestions(assessment, { difficulty: "intermediate" })[0].id, 
 assert.equal(selectQuestions(assessment, { kind: "single-choice" })[0].id, "q1");
 assert.equal(selectQuestions(assessment, { tags: ["fractions", "cycle-3"] }).length, 0);
 assert.equal(selectQuestions(assessment, { tags: ["fractions"] })[0].id, "q1");
+assert.equal(selectQuestions(assessment, { anyTags: ["cycle-3", "fractions"] }).length, 2);
+assert.equal(selectQuestions(assessment, { anyTags: ["fractions", "missing"] })[0].id, "q1");
 assert.equal(selectQuestions(assessment, { minPoints: 2 })[0].id, "q1");
 assert.equal(selectQuestions(assessment, { maxPoints: 1 })[0].id, "q2");
 assert.equal(selectQuestions(assessment, { offset: 1 })[0].id, "q2");
@@ -132,6 +134,7 @@ assert.throws(() => selectQuestions(assessment, { minPoints: -1 }), /minPoints.*
 assert.throws(() => selectQuestions(assessment, { minPoints: 2, maxPoints: 1 }), /minPoints.*maxPoints/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ kind: "essay" })), /Unsupported question kind/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ tags: ["fractions", 1] })), /tags.*array of strings/);
+assert.throws(() => selectQuestions(assessment, { anyTags: [] }), /anyTags.*non-empty array/);
 assert.throws(() => selectQuestions(assessment, { offset: -1 }), /offset.*non-negative integer/);
 assert.throws(() => selectQuestions(assessment, { limit: 1.5 }), /limit.*non-negative integer/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ ids: [] })), /ids.*non-empty array/);
