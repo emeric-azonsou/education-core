@@ -89,6 +89,13 @@ export interface AssessmentSummary {
   tagCounts: Readonly<Record<string, number>>;
 }
 
+export interface QuestionSelectionSummary {
+  questionCount: number;
+  totalPoints: number;
+  estimatedSeconds: number;
+  estimatedQuestionCount: number;
+}
+
 export type PerformanceBand = "not-achieved" | "developing" | "achieved" | "mastery";
 
 export interface PerformanceThresholds {
@@ -835,6 +842,21 @@ export function summarizeAssessment(assessment: Assessment): AssessmentSummary {
     difficultyCounts,
     tagCounts,
   };
+}
+
+/** Summarizes a selected question set without requiring a complete assessment. */
+export function summarizeQuestionSelection(questions: readonly Question[]): QuestionSelectionSummary {
+  let totalPoints = 0;
+  let estimatedSeconds = 0;
+  let estimatedQuestionCount = 0;
+  for (const question of questions) {
+    totalPoints += question.points;
+    if (question.estimatedSeconds !== undefined) {
+      estimatedSeconds += question.estimatedSeconds;
+      estimatedQuestionCount += 1;
+    }
+  }
+  return { questionCount: questions.length, totalPoints, estimatedSeconds, estimatedQuestionCount };
 }
 
 /** Finds one question by its stable identifier. */
