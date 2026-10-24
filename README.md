@@ -66,8 +66,9 @@ to obtain the number of questions, total points and distribution by question
 type.
 
 `getQuestionById` retrieves one question for editor screens, while
-`listQuestionsByKind`, `listQuestionsByDifficulty` and `listQuestionsByTag`
-support filtered views without changing the assessment.
+`listQuestionsByIds`, `listQuestionsByKind`, `listQuestionsByDifficulty` and
+`listQuestionsByTag` support filtered views without changing the assessment.
+`listQuestionsByIds` preserves the requested order and rejects unknown IDs.
 
 Assessments may also include `difficulty`, `tags` and `learningObjectives`.
 Use `serializeAssessment` and `parseAssessment` to persist validated JSON.
