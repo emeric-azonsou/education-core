@@ -8,6 +8,7 @@ import {
   isQuestionInput,
   isScoreResult,
   listQuestionsByDifficulty,
+  listQuestionsByIds,
   listQuestionsByKind,
   listQuestionsByTag,
   normalizeAnswer,
@@ -107,6 +108,9 @@ assert.deepEqual(summarizeAssessment(assessment), {
 });
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
+assert.deepEqual(listQuestionsByIds(assessment, ["q2", "q1"]).map((question) => question.id), ["q2", "q1"]);
+assert.throws(() => listQuestionsByIds(assessment, ["missing"]), /Unknown question ID/);
+assert.throws(() => listQuestionsByIds(assessment, ["q1", "q1"]), /IDs.*duplicates/);
 assert.equal(listQuestionsByTag(assessment, "FRACTIONS")[0].id, "q1");
 assert.equal(listQuestionsByTag(assessment, "missing").length, 0);
 assert.throws(() => listQuestionsByKind(assessment, /** @type {any} */ ("essay")), /Unsupported question kind/);
