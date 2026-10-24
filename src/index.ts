@@ -127,8 +127,22 @@ export function isAssessmentInput(value: unknown): value is AssessmentInput {
     Array.isArray(candidate.questions);
 }
 
+/** Runtime guard for individual question records. */
+export function isQuestionInput(value: unknown): value is Question {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.id === "string" &&
+    typeof candidate.prompt === "string" &&
+    typeof candidate.kind === "string" &&
+    typeof candidate.points === "number" &&
+    (typeof candidate.answer === "string" || Array.isArray(candidate.answer));
+}
+
 /** Returns all authoring issues without throwing, which is useful for editors and CI. */
-export function validateAssessmentInput(input: AssessmentInput): ValidationIssue[] {
+export function validateAssessmentInput(input: unknown): ValidationIssue[] {
+  if (!isAssessmentInput(input)) {
+    return [{ path: "assessment", message: "must be a valid assessment object" }];
+  }
   const issues: ValidationIssue[] = [];
   if (!input.id.trim()) issues.push({ path: "id", message: "must not be empty" });
   if (!input.title.trim()) issues.push({ path: "title", message: "must not be empty" });
@@ -149,6 +163,10 @@ export function validateAssessmentInput(input: AssessmentInput): ValidationIssue
   const ids = new Set<string>();
   input.questions.forEach((question, index) => {
     const path = `questions[${index}]`;
+    if (!isQuestionInput(question)) {
+      issues.push({ path, message: "must be a valid question object" });
+      return;
+    }
     if (!question.id.trim()) issues.push({ path: `${path}.id`, message: "must not be empty" });
     if (ids.has(question.id)) issues.push({ path: `${path}.id`, message: "must be unique" });
     ids.add(question.id);
