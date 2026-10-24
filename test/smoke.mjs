@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createAssessment, scoreAssessment, validateAssessmentInput } from "../dist/index.js";
+import { createAssessment, scoreAssessment, summarizeAssessment, validateAssessmentInput } from "../dist/index.js";
 
 const assessment = createAssessment({
   id: "fractions-01",
@@ -26,6 +26,15 @@ const assessment = createAssessment({
 
 assert.equal(assessment.language, "fr");
 assert.equal(assessment.totalPoints, 3);
+assert.deepEqual(summarizeAssessment(assessment), {
+  questionCount: 2,
+  totalPoints: 3,
+  questionKinds: {
+    "single-choice": 1,
+    "true-false": 1,
+    "short-answer": 0,
+  },
+});
 assert.deepEqual(validateAssessmentInput({
   id: "",
   title: "",
