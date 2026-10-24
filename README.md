@@ -161,6 +161,7 @@ npx classekit validate examples/assessment.json
 npx classekit validate examples/assessment.json --json
 npx classekit validate-score examples/result-perfect.json
 npx classekit summary examples/assessment.json
+npx classekit select examples/assessment.json --tag=fractions --min-points=2
 npx classekit score examples/assessment.json examples/answers.json --partial-credit
 npx classekit recommend examples/assessment.json examples/answers.json --threshold=70
 npx classekit shuffle examples/assessment.json --seed=42
@@ -184,6 +185,10 @@ not accidentally change the exported document structure.
 
 `summary` emits compact assessment metadata for dashboards. `export-json`
 emits the normalized, validated assessment document.
+
+`select` outputs the matching questions as JSON. Combine `--tag`, `--tags`,
+`--difficulty`, `--kind`, `--min-points` and `--max-points` to build focused
+question sets for review or quiz generation.
 
 Exports support English and French labels. For the CLI, pass
 `--locale=fr` or `--locale=en`.

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added the CLI `select` command for composing tag, difficulty, kind and point-range filters.
 - Added normalized tag counts to summaries and a dedicated tag-based question listing helper.
 - Added difficulty-specific question listing and validated min/max point filters.
 - Added per-question estimated timing with validation and localized Markdown/HTML output.
