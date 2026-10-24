@@ -189,6 +189,18 @@ assert.deepEqual(validateAnswers(assessment, /** @type {any} */ ({ q1: ["2/4"] }
   { path: "answers.q1", message: "must be a string for this question type" },
 ]);
 assert.deepEqual(validateAnswers(multipleChoice, { q1: ["Mercure"] }), []);
+assert.deepEqual(validateAnswers(multipleChoice, { q1: ["Mars"] }), [
+  { path: "answers.q1", message: "must match one of the choices" },
+]);
+assert.deepEqual(validateAnswers(multipleChoice, { q1: ["Mercure", "mercure"] }), [
+  { path: "answers.q1", message: "must not contain duplicate values" },
+]);
+assert.deepEqual(validateAnswers(assessment, { q1: "not-a-choice" }), [
+  { path: "answers.q1", message: "must match one of the choices" },
+]);
+assert.deepEqual(validateAnswers(assessment, { q2: "maybe" }), [
+  { path: "answers.q2", message: "must be true or false" },
+]);
 assert.deepEqual(validateAnswers(multipleChoice, /** @type {any} */ ({ q1: ["Mercure", 1] })), [
   { path: "answers.q1", message: "array values must be strings" },
 ]);
