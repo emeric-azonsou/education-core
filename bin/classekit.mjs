@@ -17,10 +17,12 @@ const difficultyArgument = process.argv.find((argument) => argument.startsWith("
 const kindArgument = process.argv.find((argument) => argument.startsWith("--kind="));
 const minPointsArgument = process.argv.find((argument) => argument.startsWith("--min-points="));
 const maxPointsArgument = process.argv.find((argument) => argument.startsWith("--max-points="));
+const offsetArgument = process.argv.find((argument) => argument.startsWith("--offset="));
+const limitArgument = process.argv.find((argument) => argument.startsWith("--limit="));
 const partialCredit = process.argv.includes("--partial-credit");
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit select <assessment.json> [--tag=tag] [--tags=a,b] [--difficulty=level] [--kind=kind] [--min-points=n] [--max-points=n] | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
+  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit select <assessment.json> [--tag=tag] [--tags=a,b] [--difficulty=level] [--kind=kind] [--min-points=n] [--max-points=n] [--offset=n] [--limit=n] | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -63,6 +65,8 @@ if (!command || !assessmentPath || !["validate", "validate-score", "summary", "s
           ...(kindArgument ? { kind: kindArgument.slice("--kind=".length) } : {}),
           ...(minPointsArgument ? { minPoints: Number(minPointsArgument.slice("--min-points=".length)) } : {}),
           ...(maxPointsArgument ? { maxPoints: Number(maxPointsArgument.slice("--max-points=".length)) } : {}),
+          ...(offsetArgument ? { offset: Number(offsetArgument.slice("--offset=".length)) } : {}),
+          ...(limitArgument ? { limit: Number(limitArgument.slice("--limit=".length)) } : {}),
         });
         console.log(JSON.stringify(selected, null, 2));
       } else if (command === "export-json") {

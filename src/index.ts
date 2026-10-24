@@ -125,6 +125,8 @@ export interface QuestionFilter {
   kind?: QuestionKind;
   minPoints?: number;
   maxPoints?: number;
+  offset?: number;
+  limit?: number;
 }
 
 const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "multiple-choice", "true-false", "short-answer"]);
@@ -862,7 +864,7 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
   if (filter.minPoints !== undefined && filter.maxPoints !== undefined && filter.minPoints > filter.maxPoints) {
     throw new RangeError("Question minPoints must not exceed maxPoints");
   }
-  return assessment.questions.filter((question) => {
+  const selected = assessment.questions.filter((question) => {
     const matchesTag = !filter.tag || question.tags?.some((tag) => normalizeAnswer(tag) === normalizeAnswer(filter.tag ?? ""));
     const matchesTags = !filter.tags?.length || filter.tags.every((tag) => question.tags?.some((questionTag) => normalizeAnswer(questionTag) === normalizeAnswer(tag)));
     const matchesDifficulty = !filter.difficulty || question.difficulty === filter.difficulty;
@@ -871,6 +873,8 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
     const matchesMaxPoints = filter.maxPoints === undefined || question.points <= filter.maxPoints;
     return matchesTag && matchesTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints;
   });
+  const offset = filter.offset ?? 0;
+  return filter.limit === undefined ? selected.slice(offset) : selected.slice(offset, offset + filter.limit);
 }
 
 /** Creates a reproducible shuffled copy without mutating the source assessment. */
@@ -916,6 +920,12 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
   }
   if (filter.maxPoints !== undefined && typeof filter.maxPoints !== "number") {
     throw new TypeError("Question maxPoints must be a number");
+  }
+  if (filter.offset !== undefined && (typeof filter.offset !== "number" || !Number.isInteger(filter.offset) || filter.offset < 0)) {
+    throw new RangeError("Question offset must be a non-negative integer");
+  }
+  if (filter.limit !== undefined && (typeof filter.limit !== "number" || !Number.isInteger(filter.limit) || filter.limit < 0)) {
+    throw new RangeError("Question limit must be a non-negative integer");
   }
 }
 
