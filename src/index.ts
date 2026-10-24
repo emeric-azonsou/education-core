@@ -300,6 +300,28 @@ export function serializeAssessmentCsv(assessment: Assessment): string {
   return [header, ...rows].map((row) => row.map(escapeCsvCell).join(",")).join("\n");
 }
 
+/** Renders an assessment as Markdown, optionally including the answer key. */
+export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswers = false): string {
+  const lines = [`# ${assessment.title}`, "", `- **Subject:** ${assessment.subject}`, `- **Language:** ${assessment.language}`];
+  if (assessment.difficulty) lines.push(`- **Difficulty:** ${assessment.difficulty}`);
+  if (assessment.tags?.length) lines.push(`- **Tags:** ${assessment.tags.join(", ")}`);
+  lines.push("", "## Questions", "");
+
+  assessment.questions.forEach((question, index) => {
+    lines.push(`${index + 1}. ${question.prompt} *(${question.points} point${question.points === 1 ? "" : "s"})*`);
+    if (question.choices?.length) {
+      for (const choice of question.choices) {
+        const marker = includeAnswers && normalizeAnswer(choice) === normalizeAnswer(question.answer) ? " [x]" : " [ ]";
+        lines.push(`   -${marker} ${choice}`);
+      }
+    }
+    if (includeAnswers) lines.push(`   - **Answer:** ${question.answer}`);
+    if (question.explanation) lines.push(`   - **Explanation:** ${question.explanation}`);
+    lines.push("");
+  });
+  return `${lines.join("\n").trim()}\n`;
+}
+
 /** Imports a question CSV document and validates the resulting assessment. */
 export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, "id" | "title" | "subject">): Assessment {
   const rows = parseCsvRows(csv);
