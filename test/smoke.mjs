@@ -42,6 +42,7 @@ const assessment = createAssessment({
       points: 2,
       tags: ["fractions"],
       difficulty: "introductory",
+      explanation: "Multiplier le numérateur et le dénominateur par 2.",
     },
     {
       id: "q2",
@@ -250,6 +251,7 @@ const markdown = serializeAssessmentMarkdown(assessment);
 assert.match(markdown, /# Fractions de base/);
 assert.match(markdown, /Duration:\*\* 30 minutes/);
 assert.match(markdown, /Objectives:\*\* Comparer des fractions simples/);
+assert.match(markdown, /Explanation:\*\* Multiplier le numérateur/);
 assert.doesNotMatch(markdown, /Answer/);
 assert.match(serializeAssessmentMarkdown(assessment, true), /\*\*Answer:\*\* 2\/4/);
 assert.match(serializeAssessmentMarkdown(assessment, false, "fr"), /Matière/);
@@ -259,6 +261,8 @@ assert.match(html, /<!doctype html>/);
 assert.match(html, /Mathématiques/);
 assert.match(html, /Duration:<\/strong> 30 minutes/);
 assert.match(html, /Objectives:<\/strong> Comparer des fractions simples/);
+assert.match(html, /Difficulty:<\/strong> introductory/);
+assert.match(html, /Explanation:<\/strong> Multiplier le numérateur/);
 assert.match(html, /aria-labelledby="question-1"/);
 assert.match(html, /<ol>/);
 assert.match(serializeAssessmentHtml(assessment, false, "fr"), /Matière:<\/strong>/);
