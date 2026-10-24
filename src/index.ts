@@ -18,6 +18,7 @@ export interface Question {
 
 export interface AssessmentInput {
   id: string;
+  schemaVersion?: number;
   title: string;
   subject: string;
   language?: string;
@@ -29,6 +30,7 @@ export interface AssessmentInput {
 }
 
 export interface Assessment extends AssessmentInput {
+  schemaVersion: number;
   language: string;
   totalPoints: number;
 }
@@ -121,6 +123,7 @@ export function createAssessment(input: AssessmentInput): Assessment {
 
   return {
     ...input,
+    schemaVersion: input.schemaVersion ?? 1,
     language: input.language ?? "fr",
     questions,
     totalPoints: questions.reduce((total, question) => total + question.points, 0),
@@ -157,6 +160,9 @@ export function validateAssessmentInput(input: unknown): ValidationIssue[] {
   if (!input.id.trim()) issues.push({ path: "id", message: "must not be empty" });
   if (!input.title.trim()) issues.push({ path: "title", message: "must not be empty" });
   if (!input.subject.trim()) issues.push({ path: "subject", message: "must not be empty" });
+  if (input.schemaVersion !== undefined && input.schemaVersion !== 1) {
+    issues.push({ path: "schemaVersion", message: "only schema version 1 is supported" });
+  }
   if (input.difficulty && !SUPPORTED_DIFFICULTIES.has(input.difficulty)) {
     issues.push({ path: "difficulty", message: "is not supported" });
   }
