@@ -135,9 +135,12 @@ match the question kind.
 
 ```bash
 npm run check
+npm run test:cli
+npm run verify
 ```
 
-The command compiles the package and runs the dependency-free smoke tests.
+`verify` compiles the package, runs both smoke suites and checks the package
+contents with the same commands used by CI before publication.
 `npm run test:cli` also exercises the CLI end to end, including successful
 JSON/localized exports and expected non-zero error paths.
 

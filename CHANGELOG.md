@@ -14,6 +14,7 @@
 - Added CLI `summary` and `export-json` commands with localized export coverage.
 - Added end-to-end CLI smoke coverage for output and error exit codes.
 - Tightened authoring validation for metadata, choices and answer collections.
+- Added a unified `verify`/`prepublishOnly` gate and expanded CI package checks.
 
 ## 0.2.0 - 2026-10-24
 
