@@ -13,6 +13,10 @@ const selected = run("select", "examples/assessment.json", "--min-points=2", "--
 assert.equal(selected.status, 0);
 assert.equal(JSON.parse(selected.stdout)[0].id, "q1");
 
+const pagedSelection = run("select", "examples/assessment.json", "--offset=1", "--limit=1");
+assert.equal(pagedSelection.status, 0);
+assert.deepEqual(JSON.parse(pagedSelection.stdout), []);
+
 const invalidSelection = run("select", "examples/assessment.json", "--min-points=3", "--max-points=1");
 assert.equal(invalidSelection.status, 1);
 assert.match(invalidSelection.stderr, /minPoints.*maxPoints/);

@@ -120,10 +120,15 @@ assert.equal(selectQuestions(assessment, { tags: ["fractions", "cycle-3"] }).len
 assert.equal(selectQuestions(assessment, { tags: ["fractions"] })[0].id, "q1");
 assert.equal(selectQuestions(assessment, { minPoints: 2 })[0].id, "q1");
 assert.equal(selectQuestions(assessment, { maxPoints: 1 })[0].id, "q2");
+assert.equal(selectQuestions(assessment, { offset: 1 })[0].id, "q2");
+assert.equal(selectQuestions(assessment, { limit: 1 })[0].id, "q1");
+assert.equal(selectQuestions(assessment, { offset: 1, limit: 1 })[0].id, "q2");
 assert.throws(() => selectQuestions(assessment, { minPoints: -1 }), /minPoints.*finite non-negative/);
 assert.throws(() => selectQuestions(assessment, { minPoints: 2, maxPoints: 1 }), /minPoints.*maxPoints/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ kind: "essay" })), /Unsupported question kind/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ tags: ["fractions", 1] })), /tags.*array of strings/);
+assert.throws(() => selectQuestions(assessment, { offset: -1 }), /offset.*non-negative integer/);
+assert.throws(() => selectQuestions(assessment, { limit: 1.5 }), /limit.*non-negative integer/);
 const shuffledA = shuffleAssessment(assessment, 42);
 const shuffledB = shuffleAssessment(assessment, 42);
 assert.deepEqual(shuffledA, shuffledB);
