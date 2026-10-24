@@ -5,6 +5,14 @@
   "correctQuestionIds": [],
   "incorrectQuestionIds": ["q1"],
   "unansweredQuestionIds": ["q1"],
-  "details": [],
+  "details": [
+    {
+      "questionId": "q1",
+      "expected": "5",
+      "correct": false,
+      "earnedPoints": 0,
+      "maxPoints": 2
+    }
+  ],
   "passed": false
 }

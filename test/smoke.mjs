@@ -82,6 +82,8 @@ assert.equal(assessment.totalPoints, 3);
 assert.deepEqual(summarizeAssessment(assessment), {
   questionCount: 2,
   totalPoints: 3,
+  estimatedSeconds: 45,
+  estimatedQuestionCount: 1,
   questionKinds: {
     "single-choice": 1,
     "multiple-choice": 0,
@@ -99,6 +101,9 @@ assert.equal(getQuestionById(assessment, "missing"), undefined);
 assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
 assert.equal(selectQuestions(assessment, { tag: "FRACTIONS" }).length, 1);
 assert.equal(selectQuestions(assessment, { difficulty: "intermediate" })[0].id, "q2");
+assert.equal(selectQuestions(assessment, { kind: "single-choice" })[0].id, "q1");
+assert.equal(selectQuestions(assessment, { tags: ["fractions", "cycle-3"] }).length, 0);
+assert.equal(selectQuestions(assessment, { tags: ["fractions"] })[0].id, "q1");
 const shuffledA = shuffleAssessment(assessment, 42);
 const shuffledB = shuffleAssessment(assessment, 42);
 assert.deepEqual(shuffledA, shuffledB);
@@ -441,6 +446,8 @@ assert.equal(isScoreResult(perfectAttempt), true);
 assert.equal(isScoreResult({ percentage: 100 }), false);
 assert.equal(isScoreResult({ ...perfectAttempt, details: [{ questionId: "q1", expected: "ok", correct: true, earnedPoints: 2, maxPoints: 2, submitted: 7 }] }), false);
 assert.equal(isScoreResult({ ...perfectAttempt, earnedPoints: 99 }), false);
+assert.equal(isScoreResult({ ...perfectAttempt, incorrectQuestionIds: ["q1"], unansweredQuestionIds: ["q2"] }), false);
+assert.equal(isScoreResult({ ...perfectAttempt, details: [...perfectAttempt.details, perfectAttempt.details[0]] }), false);
 assert.throws(() => summarizeScoreAttempts(/** @type {any} */ ([{ percentage: 100 }])), /Invalid score result/);
 assert.throws(() => summarizeScoreAttempts(/** @type {any} */ (null)), /Score results must be an array/);
 assert.throws(() => scoreAssessment(assessment, /** @type {any} */ ({ q1: { answer: "2/4" } })), /Answers must contain only strings/);
