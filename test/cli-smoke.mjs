@@ -21,6 +21,10 @@ const idSelection = run("select", "examples/assessment.json", "--ids=q1");
 assert.equal(idSelection.status, 0);
 assert.equal(JSON.parse(idSelection.stdout)[0].id, "q1");
 
+const excludedIdSelection = run("select", "examples/assessment.json", "--exclude-ids=q1");
+assert.equal(excludedIdSelection.status, 0);
+assert.deepEqual(JSON.parse(excludedIdSelection.stdout), []);
+
 const orderedSelection = run("select", "examples/assessment.json", "--order=points-desc", "--limit=1");
 assert.equal(orderedSelection.status, 0);
 assert.equal(JSON.parse(orderedSelection.stdout)[0].points, 2);
