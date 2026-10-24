@@ -41,6 +41,11 @@ type.
 `getQuestionById` retrieves one question for editor screens, while
 `listQuestionsByKind` supports filtered views without changing the assessment.
 
+Assessments may also include `difficulty`, `tags` and `learningObjectives`.
+Use `serializeAssessment` and `parseAssessment` to persist validated JSON.
+Answer scoring ignores differences in case and accents, so `élève` and
+`ELEVE` are treated as equivalent.
+
 ## Design goals
 
 - no runtime dependencies;
