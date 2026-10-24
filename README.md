@@ -146,6 +146,7 @@ the imported result is validated through the same core rules.
 
 Exports support English and French labels. For the CLI, pass
 `--locale=fr` or `--locale=en`.
+Unsupported locale values are rejected explicitly.
 
 `serializeAssessmentHtml` and `export-html` produce escaped standalone HTML,
 so prompts and titles can safely contain user-provided text.
