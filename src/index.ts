@@ -385,6 +385,7 @@ export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswe
   const lines = [`# ${assessment.title}`, "", `- **${labels.subject}:** ${assessment.subject}`, `- **${labels.language}:** ${assessment.language}`];
   if (assessment.difficulty) lines.push(`- **${labels.difficulty}:** ${assessment.difficulty}`);
   if (assessment.tags?.length) lines.push(`- **${labels.tags}:** ${assessment.tags.join(", ")}`);
+  if (assessment.learningObjectives?.length) lines.push(`- **${labels.objectives}:** ${assessment.learningObjectives.join(", ")}`);
   if (assessment.durationMinutes) lines.push(`- **${labels.duration}:** ${assessment.durationMinutes} ${labels.minutes}`);
   lines.push("", `## ${labels.questions}`, "");
 
@@ -414,7 +415,8 @@ export function serializeAssessmentHtml(assessment: Assessment, includeAnswers =
     return `<li><section aria-labelledby="question-${index + 1}"><h2 id="question-${index + 1}">${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${choices}${answer}</section></li>`;
   }).join("\n");
   const duration = assessment.durationMinutes ? `<p><strong>${labels.duration}:</strong> ${assessment.durationMinutes} ${labels.minutes}</p>` : "";
-  return `<!doctype html><html lang="${escapeHtml(assessment.language)}"><head><meta charset="utf-8"><title>${escapeHtml(assessment.title)}</title></head><body><main><h1>${escapeHtml(assessment.title)}</h1><p><strong>${labels.subject}:</strong> ${escapeHtml(assessment.subject)}</p>${duration}<ol>${questions}</ol></main></body></html>\n`;
+  const objectives = assessment.learningObjectives?.length ? `<p><strong>${labels.objectives}:</strong> ${assessment.learningObjectives.map(escapeHtml).join(", ")}</p>` : "";
+  return `<!doctype html><html lang="${escapeHtml(assessment.language)}"><head><meta charset="utf-8"><title>${escapeHtml(assessment.title)}</title></head><body><main><h1>${escapeHtml(assessment.title)}</h1><p><strong>${labels.subject}:</strong> ${escapeHtml(assessment.subject)}</p>${objectives}${duration}<ol>${questions}</ol></main></body></html>\n`;
 }
 
 /** Imports a question CSV document and validates the resulting assessment. */
@@ -574,6 +576,7 @@ function exportLabels(locale: ExportLocale): {
   language: string;
   difficulty: string;
   tags: string;
+  objectives: string;
   duration: string;
   minutes: string;
   questions: string;
@@ -582,8 +585,8 @@ function exportLabels(locale: ExportLocale): {
   explanation: string;
 } {
   return locale === "fr"
-    ? { subject: "Matière", language: "Langue", difficulty: "Difficulté", tags: "Tags", duration: "Durée", minutes: "minutes", questions: "Questions", choices: "Choix pour la question", answer: "Réponse", explanation: "Explication" }
-    : { subject: "Subject", language: "Language", difficulty: "Difficulty", tags: "Tags", duration: "Duration", minutes: "minutes", questions: "Questions", choices: "Choices for question", answer: "Answer", explanation: "Explanation" };
+    ? { subject: "Matière", language: "Langue", difficulty: "Difficulté", tags: "Tags", objectives: "Objectifs", duration: "Durée", minutes: "minutes", questions: "Questions", choices: "Choix pour la question", answer: "Réponse", explanation: "Explication" }
+    : { subject: "Subject", language: "Language", difficulty: "Difficulty", tags: "Tags", objectives: "Objectives", duration: "Duration", minutes: "minutes", questions: "Questions", choices: "Choices for question", answer: "Answer", explanation: "Explanation" };
 }
 
 function parseCsvRows(csv: string): string[][] {
