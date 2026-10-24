@@ -186,7 +186,8 @@ not accidentally change the exported document structure.
 `summary` emits compact assessment metadata for dashboards. `export-json`
 emits the normalized, validated assessment document.
 
-`select` outputs the matching questions as JSON. Combine `--ids`, `--tag`, `--tags`,
+`select` outputs the matching questions as JSON. Combine `--ids`, `--tag`, `--tags`
+and `--any-tags` to target exact, required or alternative topics, then use
 `--difficulty`, `--kind`, `--min-points` and `--max-points` to build focused
 question sets for review or quiz generation. Use `--min-time` and `--max-time`
 to require estimated timing metadata. Use `--order=points-asc` or

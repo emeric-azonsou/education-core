@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added any-tag matching for combining alternative topics in question selections.
 - Added estimated-time range filters to question selection APIs and the CLI.
 - Added deterministic point-based ordering to question selection and pagination.
 - Added exact question-ID selection to the API and CLI filters.
