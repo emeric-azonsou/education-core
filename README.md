@@ -82,6 +82,7 @@ npx classekit score examples/assessment.json examples/answers.json
 npx classekit export-csv examples/assessment.json
 npx classekit export-md examples/assessment.json
 npx classekit export-md examples/assessment.json --answers
+npx classekit export-html examples/assessment.json
 ```
 
 For spreadsheet workflows, use `serializeAssessmentCsv` and
@@ -90,6 +91,9 @@ the imported result is validated through the same core rules.
 
 `export-md` creates a learner-facing Markdown document by default. Pass
 `--answers` to include the correction key for teachers.
+
+`serializeAssessmentHtml` and `export-html` produce escaped standalone HTML,
+so prompts and titles can safely contain user-provided text.
 
 ## Contributing
 
