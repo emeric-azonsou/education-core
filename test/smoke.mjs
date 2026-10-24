@@ -129,6 +129,7 @@ assert.deepEqual(summarizeQuestionSelection(assessment.questions), {
     "cycle-3": 1,
   },
 });
+assert.equal(summarizeAssessment(assessment).estimatedSeconds, summarizeQuestionSelection(assessment.questions).estimatedSeconds);
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
 assert.deepEqual(listQuestionsByIds(assessment, ["q2", "q1"]).map((question) => question.id), ["q2", "q1"]);
