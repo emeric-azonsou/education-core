@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
-import { parseAssessment, recommendReviewTags, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, summarizeScoreAttempts } from "../dist/index.js";
+import { parseAssessment, recommendReviewTags, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, shuffleAssessment, summarizeScoreAttempts } from "../dist/index.js";
 
 const args = process.argv.slice(2);
 const [command, assessmentPath, answersPath] = args;
@@ -9,9 +9,11 @@ const localeArgument = process.argv.find((argument) => argument.startsWith("--lo
 const locale = localeArgument?.slice("--locale=".length) ?? "en";
 const thresholdArgument = process.argv.find((argument) => argument.startsWith("--threshold="));
 const threshold = thresholdArgument ? Number(thresholdArgument.slice("--threshold=".length)) : 70;
+const seedArgument = process.argv.find((argument) => argument.startsWith("--seed="));
+const seed = seedArgument ? Number(seedArgument.slice("--seed=".length)) : 1;
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> | classekit score <assessment.json> <answers.json> | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit stats <result-1.json> <result-2.json> ... | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
+  console.error("Usage: classekit validate <assessment.json> | classekit score <assessment.json> <answers.json> | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -19,7 +21,7 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
-if (!command || !assessmentPath || !["validate", "score", "recommend", "stats", "export-csv", "export-md", "export-html"].includes(command)) {
+if (!command || !assessmentPath || !["validate", "score", "recommend", "shuffle", "stats", "export-csv", "export-md", "export-html"].includes(command)) {
   usage();
 } else {
   try {
@@ -43,6 +45,8 @@ if (!command || !assessmentPath || !["validate", "score", "recommend", "stats", 
         } else {
           console.log(JSON.stringify(recommendReviewTags(assessment, await readJson(answersPath), threshold), null, 2));
         }
+      } else if (command === "shuffle") {
+        console.log(serializeAssessment(shuffleAssessment(assessment, seed)));
       } else {
       if (!answersPath) {
         usage();
