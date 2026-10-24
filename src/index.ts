@@ -130,6 +130,8 @@ export interface QuestionFilter {
   offset?: number;
   limit?: number;
   order?: QuestionOrder;
+  minEstimatedSeconds?: number;
+  maxEstimatedSeconds?: number;
 }
 
 const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "multiple-choice", "true-false", "short-answer"]);
@@ -875,7 +877,9 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
     const matchesKind = !filter.kind || question.kind === filter.kind;
     const matchesMinPoints = filter.minPoints === undefined || question.points >= filter.minPoints;
     const matchesMaxPoints = filter.maxPoints === undefined || question.points <= filter.maxPoints;
-    return matchesIds && matchesTag && matchesTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints;
+    const matchesMinTime = filter.minEstimatedSeconds === undefined || (question.estimatedSeconds !== undefined && question.estimatedSeconds >= filter.minEstimatedSeconds);
+    const matchesMaxTime = filter.maxEstimatedSeconds === undefined || (question.estimatedSeconds !== undefined && question.estimatedSeconds <= filter.maxEstimatedSeconds);
+    return matchesIds && matchesTag && matchesTags && matchesDifficulty && matchesKind && matchesMinPoints && matchesMaxPoints && matchesMinTime && matchesMaxTime;
   });
   if (filter.order === "points-asc") selected.sort((left, right) => left.points - right.points);
   if (filter.order === "points-desc") selected.sort((left, right) => right.points - left.points);
@@ -943,6 +947,15 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
   }
   if (filter.order !== undefined && !["assessment", "points-asc", "points-desc"].includes(filter.order as string)) {
     throw new RangeError(`Unsupported question order: ${String(filter.order)}`);
+  }
+  if (filter.minEstimatedSeconds !== undefined && (typeof filter.minEstimatedSeconds !== "number" || !Number.isFinite(filter.minEstimatedSeconds) || filter.minEstimatedSeconds < 0)) {
+    throw new RangeError("Question minEstimatedSeconds must be a finite non-negative number");
+  }
+  if (filter.maxEstimatedSeconds !== undefined && (typeof filter.maxEstimatedSeconds !== "number" || !Number.isFinite(filter.maxEstimatedSeconds) || filter.maxEstimatedSeconds < 0)) {
+    throw new RangeError("Question maxEstimatedSeconds must be a finite non-negative number");
+  }
+  if (filter.minEstimatedSeconds !== undefined && filter.maxEstimatedSeconds !== undefined && filter.minEstimatedSeconds > filter.maxEstimatedSeconds) {
+    throw new RangeError("Question minEstimatedSeconds must not exceed maxEstimatedSeconds");
   }
 }
 
