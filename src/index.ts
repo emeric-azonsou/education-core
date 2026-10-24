@@ -177,6 +177,20 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
   };
 }
 
+/** Checks submitted answer keys before scoring or persistence. */
+export function validateAnswers(
+  assessment: Assessment,
+  answers: Readonly<Record<string, string>>,
+): ValidationIssue[] {
+  const questionIds = new Set(assessment.questions.map((question) => question.id));
+  return Object.keys(answers)
+    .filter((questionId) => !questionIds.has(questionId))
+    .map((questionId) => ({
+      path: `answers.${questionId}`,
+      message: "does not match an assessment question",
+    }));
+}
+
 /** Normalizes human-entered answers for accent- and case-insensitive comparison. */
 export function normalizeAnswer(value: string): string {
   return value.trim().normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("fr-FR");
