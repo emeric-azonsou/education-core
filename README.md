@@ -82,6 +82,9 @@ difficulty distribution for dashboard or content-review views.
 Use `summarizeScoreAttempts` to calculate averages, score ranges and pass
 rates across repeated learner attempts.
 
+The same aggregation is available from the CLI with `classekit stats` and any
+number of saved score-result JSON files.
+
 Use `selectQuestions` to create focused views by tag or difficulty without
 mutating the original assessment.
 
@@ -119,6 +122,7 @@ After building, validate an assessment file or score submitted answers:
 ```bash
 npx classekit validate examples/assessment.json
 npx classekit score examples/assessment.json examples/answers.json
+npx classekit stats examples/result-perfect.json examples/result-empty.json
 npx classekit export-csv examples/assessment.json
 npx classekit export-md examples/assessment.json
 npx classekit export-md examples/assessment.json --answers
