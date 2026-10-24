@@ -17,6 +17,10 @@ const invalidSelection = run("select", "examples/assessment.json", "--min-points
 assert.equal(invalidSelection.status, 1);
 assert.match(invalidSelection.stderr, /minPoints.*maxPoints/);
 
+const invalidKind = run("select", "examples/assessment.json", "--kind=essay");
+assert.equal(invalidKind.status, 1);
+assert.match(invalidKind.stderr, /Unsupported question kind/);
+
 const exported = run("export-json", "examples/assessment.json");
 assert.equal(exported.status, 0);
 assert.equal(JSON.parse(exported.stdout).id, "fractions-cli");

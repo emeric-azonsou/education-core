@@ -109,6 +109,8 @@ assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est éq
 assert.equal(getQuestionById(assessment, "missing"), undefined);
 assert.equal(listQuestionsByTag(assessment, "FRACTIONS")[0].id, "q1");
 assert.equal(listQuestionsByTag(assessment, "missing").length, 0);
+assert.throws(() => listQuestionsByKind(assessment, /** @type {any} */ ("essay")), /Unsupported question kind/);
+assert.throws(() => listQuestionsByDifficulty(assessment, /** @type {any} */ ("expert")), /Unsupported difficulty/);
 assert.equal(listQuestionsByDifficulty(assessment, "introductory")[0].id, "q1");
 assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
 assert.equal(selectQuestions(assessment, { tag: "FRACTIONS" }).length, 1);
@@ -120,6 +122,8 @@ assert.equal(selectQuestions(assessment, { minPoints: 2 })[0].id, "q1");
 assert.equal(selectQuestions(assessment, { maxPoints: 1 })[0].id, "q2");
 assert.throws(() => selectQuestions(assessment, { minPoints: -1 }), /minPoints.*finite non-negative/);
 assert.throws(() => selectQuestions(assessment, { minPoints: 2, maxPoints: 1 }), /minPoints.*maxPoints/);
+assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ kind: "essay" })), /Unsupported question kind/);
+assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ tags: ["fractions", 1] })), /tags.*array of strings/);
 const shuffledA = shuffleAssessment(assessment, 42);
 const shuffledB = shuffleAssessment(assessment, 42);
 assert.deepEqual(shuffledA, shuffledB);
