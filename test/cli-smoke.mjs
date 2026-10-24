@@ -52,6 +52,7 @@ assert.equal(JSON.parse(countOnlySelection.stdout), 1);
 const summaryOnlySelection = run("select", "examples/assessment.json", "--summary-only");
 assert.equal(summaryOnlySelection.status, 0);
 assert.deepEqual(JSON.parse(summaryOnlySelection.stdout), {
+  questionIds: ["q1"],
   questionCount: 1,
   totalPoints: 2,
   estimatedSeconds: 0,

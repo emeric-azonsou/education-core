@@ -108,6 +108,7 @@ assert.deepEqual(summarizeAssessment(assessment), {
   },
 });
 assert.deepEqual(summarizeQuestionSelection(assessment.questions), {
+  questionIds: ["q1", "q2"],
   questionCount: 2,
   totalPoints: 3,
   estimatedSeconds: 45,
