@@ -8,6 +8,7 @@ import {
   scoreAssessment,
   serializeAssessment,
   summarizeAssessment,
+  validateAnswers,
   validateAssessmentInput,
 } from "../dist/index.js";
 
@@ -51,6 +52,9 @@ assert.deepEqual(summarizeAssessment(assessment), {
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
 assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
+assert.deepEqual(validateAnswers(assessment, { q1: "2/4", unknown: "answer" }), [
+  { path: "answers.unknown", message: "does not match an assessment question" },
+]);
 assert.equal(normalizeAnswer("ÉLÈVE"), "eleve");
 assert.equal(scoreAssessment(createAssessment({
   id: "accents",
