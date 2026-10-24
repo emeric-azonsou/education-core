@@ -568,6 +568,24 @@ export function parseAssessment(json: string): Assessment {
   return createAssessment(input as AssessmentInput);
 }
 
+/** Serializes a validated score result for storage or transport. */
+export function serializeScoreResult(result: ScoreResult): string {
+  if (!isScoreResult(result)) throw new Error("Invalid score result");
+  return JSON.stringify(result, null, 2);
+}
+
+/** Parses and validates a score result JSON document. */
+export function parseScoreResult(json: string): ScoreResult {
+  let value: unknown;
+  try {
+    value = JSON.parse(json);
+  } catch {
+    throw new Error("Invalid score result JSON");
+  }
+  if (!isScoreResult(value)) throw new Error("Invalid score result document");
+  return value;
+}
+
 /** Exports assessment questions as a spreadsheet-friendly CSV document. */
 export function serializeAssessmentCsv(assessment: Assessment): string {
   const header = ["id", "kind", "prompt", "answer", "acceptedAnswers", "points", "choices", "difficulty", "tags", "estimatedSeconds", "hint", "explanation"];
