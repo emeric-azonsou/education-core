@@ -101,6 +101,8 @@ the imported result is validated through the same core rules.
 
 `serializeAssessmentHtml` and `export-html` produce escaped standalone HTML,
 so prompts and titles can safely contain user-provided text.
+The generated structure uses language metadata, ordered questions, fieldsets
+and labelled sections to support keyboard and assistive-technology workflows.
 
 ## Contributing
 
