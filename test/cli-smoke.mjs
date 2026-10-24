@@ -66,6 +66,14 @@ const conflictingSelectionModes = run("select", "examples/assessment.json", "--i
 assert.equal(conflictingSelectionModes.status, 1);
 assert.match(conflictingSelectionModes.stderr, /mutually exclusive/);
 
+const timedOnlySelection = run("select", "examples/assessment.json", "--timed-only", "--count-only");
+assert.equal(timedOnlySelection.status, 0);
+assert.equal(JSON.parse(timedOnlySelection.stdout), 0);
+
+const conflictingTimeModes = run("select", "examples/assessment.json", "--timed-only", "--untimed-only");
+assert.equal(conflictingTimeModes.status, 1);
+assert.match(conflictingTimeModes.stderr, /mutually exclusive/);
+
 const timedSelection = run("select", "examples/assessment.json", "--min-time=1");
 assert.equal(timedSelection.status, 0);
 assert.deepEqual(JSON.parse(timedSelection.stdout), []);

@@ -168,6 +168,8 @@ assert.deepEqual(selectQuestions(assessment, { seed: 42 }), selectQuestions(asse
 assert.equal(selectQuestions(assessment, { seed: 42 }).length, 2);
 assert.deepEqual(selectQuestions(assessment, { minEstimatedSeconds: 30 }).map((question) => question.id), ["q1"]);
 assert.equal(selectQuestions(assessment, { maxEstimatedSeconds: 30 }).length, 0);
+assert.equal(selectQuestions(assessment, { hasEstimatedTime: true })[0].id, "q1");
+assert.equal(selectQuestions(assessment, { hasEstimatedTime: false })[0].id, "q2");
 assert.throws(() => selectQuestions(assessment, { minPoints: -1 }), /minPoints.*finite non-negative/);
 assert.throws(() => selectQuestions(assessment, { minPoints: 2, maxPoints: 1 }), /minPoints.*maxPoints/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ kind: "essay" })), /Unsupported question kind/);
@@ -175,6 +177,7 @@ assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ tags: ["fr
 assert.throws(() => selectQuestions(assessment, { anyTags: [] }), /anyTags.*non-empty array/);
 assert.throws(() => selectQuestions(assessment, { excludeTags: [] }), /excludeTags.*non-empty array/);
 assert.throws(() => selectQuestions(assessment, { seed: 1.5 }), /seed.*integer/);
+assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ hasEstimatedTime: "yes" })), /hasEstimatedTime.*boolean/);
 assert.throws(() => selectQuestions(assessment, { offset: -1 }), /offset.*non-negative integer/);
 assert.throws(() => selectQuestions(assessment, { limit: 1.5 }), /limit.*non-negative integer/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ ids: [] })), /ids.*non-empty array/);
