@@ -1,0 +1,65 @@
+import assert from "node:assert/strict";
+import { createAssessment, scoreAssessment, validateAssessmentInput } from "../dist/index.js";
+
+const assessment = createAssessment({
+  id: "fractions-01",
+  title: "Fractions de base",
+  subject: "Mathématiques",
+  questions: [
+    {
+      id: "q1",
+      kind: "single-choice",
+      prompt: "Quelle fraction est équivalente à 1/2 ?",
+      choices: ["1/3", "2/4", "3/4"],
+      answer: "2/4",
+      points: 2,
+    },
+    {
+      id: "q2",
+      kind: "true-false",
+      prompt: "3/4 est supérieur à 1/2.",
+      answer: "true",
+      points: 1,
+    },
+  ],
+});
+
+assert.equal(assessment.language, "fr");
+assert.equal(assessment.totalPoints, 3);
+assert.deepEqual(validateAssessmentInput({
+  id: "",
+  title: "",
+  subject: "",
+  questions: [],
+}), [
+  { path: "id", message: "must not be empty" },
+  { path: "title", message: "must not be empty" },
+  { path: "subject", message: "must not be empty" },
+  { path: "questions", message: "must contain at least one question" },
+]);
+
+assert.throws(() => createAssessment({
+  id: "invalid",
+  title: "Invalid",
+  subject: "Mathématiques",
+  questions: [{
+    id: "q1",
+    kind: "single-choice",
+    prompt: "Question sans choix",
+    answer: "A",
+    points: 1,
+  }],
+}), /must contain at least two choices/);
+
+assert.deepEqual(scoreAssessment(assessment, {
+  q1: "2/4",
+  q2: "false",
+}), {
+  earnedPoints: 2,
+  totalPoints: 3,
+  percentage: 66.67,
+  correctQuestionIds: ["q1"],
+  incorrectQuestionIds: ["q2"],
+});
+
+console.log("Smoke tests passed.");
