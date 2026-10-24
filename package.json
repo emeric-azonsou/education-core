@@ -1,0 +1,21 @@
+{
+  "name": "@classekit/education-core",
+  "version": "0.1.0",
+  "description": "Portable assessment primitives for francophone education software.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+      "test": "node test/smoke.mjs",
+    "check": "npm run build && npm test"
+  },
+  "keywords": ["education", "assessment", "exams", "francophone", "typescript", "open-source"],
+  "license": "MIT",
+  "engines": { "node": ">=20" }
+}
