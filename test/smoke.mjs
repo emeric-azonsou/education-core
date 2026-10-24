@@ -54,6 +54,7 @@ assert.deepEqual(summarizeAssessment(assessment), {
   totalPoints: 3,
   questionKinds: {
     "single-choice": 1,
+    "multiple-choice": 0,
     "true-false": 1,
     "short-answer": 0,
   },
@@ -61,6 +62,33 @@ assert.deepEqual(summarizeAssessment(assessment), {
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
 assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
+const multipleChoice = createAssessment({
+  id: "multiple",
+  title: "Choix multiples",
+  subject: "Sciences",
+  questions: [{
+    id: "q1",
+    kind: "multiple-choice",
+    prompt: "Sélectionne les planètes telluriques",
+    choices: ["Mercure", "Vénus", "Jupiter"],
+    answer: ["Mercure", "Vénus"],
+    points: 2,
+  }],
+});
+assert.equal(scoreAssessment(multipleChoice, { q1: ["VÉNUS", "mercure"] }).percentage, 100);
+assert.throws(() => createAssessment({
+  id: "invalid-multiple",
+  title: "Invalid",
+  subject: "Sciences",
+  questions: [{
+    id: "q1",
+    kind: "multiple-choice",
+    prompt: "Question",
+    choices: ["A", "B"],
+    answer: "A",
+    points: 1,
+  }],
+}), /must be an array of choices/);
 assert.equal(classifyScore(92), "mastery");
 assert.equal(classifyScore(68), "developing");
 assert.throws(() => classifyScore(101), /between 0 and 100/);
@@ -102,6 +130,12 @@ const csvRoundTrip = parseAssessmentCsv(csv, {
 });
 assert.equal(csvRoundTrip.questions.length, 2);
 assert.equal(csvRoundTrip.questions[0].prompt, "Quelle fraction est équivalente à 1/2 ?");
+const multipleCsv = parseAssessmentCsv(serializeAssessmentCsv(multipleChoice), {
+  id: "multiple-csv",
+  title: "Multiple CSV",
+  subject: "Sciences",
+});
+assert.deepEqual(multipleCsv.questions[0].answer, ["Mercure", "Vénus"]);
 assert.throws(() => parseAssessmentCsv("bad,header\n", {
   id: "bad",
   title: "Bad",
