@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added exclusion-ID filters to the question selection API and CLI.
 - Added difficulty and tag presence filters for content metadata audits.
 - Added timed/untimed question metadata filters to the API and CLI.
 - Added explicit errors for conflicting CLI selection output modes.
