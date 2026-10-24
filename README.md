@@ -8,6 +8,10 @@ Supported question types are `single-choice`, `multiple-choice`, `true-false`
 and `short-answer`. Multiple-choice answers are arrays and are scored without
 depending on their order.
 
+Short-answer questions may define `acceptedAnswers` for valid synonyms or
+alternate spellings. These alternatives are normalized like the main answer
+and preserved by CSV export/import.
+
 ## Install
 
 ```bash
