@@ -38,6 +38,16 @@ export interface ValidationIssue {
   message: string;
 }
 
+export class AssessmentValidationError extends Error {
+  readonly issues: readonly ValidationIssue[];
+
+  constructor(issues: readonly ValidationIssue[]) {
+    super(issues.map((issue) => `${issue.path}: ${issue.message}`).join("; "));
+    this.name = "AssessmentValidationError";
+    this.issues = issues;
+  }
+}
+
 export interface ScoreResult {
   earnedPoints: number;
   totalPoints: number;
@@ -98,7 +108,7 @@ export function createAssessment(input: AssessmentInput): Assessment {
   }
   const issues = validateAssessmentInput(input);
   if (issues.length > 0) {
-    throw new Error(issues.map((issue) => `${issue.path}: ${issue.message}`).join("; "));
+    throw new AssessmentValidationError(issues);
   }
 
   const questions = input.questions.map((question) => ({
