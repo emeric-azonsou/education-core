@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added timed/untimed question metadata filters to the API and CLI.
 - Added explicit errors for conflicting CLI selection output modes.
 - Unified assessment and selected-question summary calculations to keep dashboard metrics consistent.
 - Added selected question IDs to API and CLI selection summaries.

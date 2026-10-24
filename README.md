@@ -204,6 +204,8 @@ Use `--summary-only` to receive the selected IDs, count, total points, estimated
 duration and composition by type, difficulty and tag. The API equivalent is
 `summarizeQuestionSelection`.
 These three output modes cannot be combined.
+Use `--timed-only` or `--untimed-only` to audit duration metadata; these modes
+are also mutually exclusive.
 
 Exports support English and French labels. For the CLI, pass
 `--locale=fr` or `--locale=en`.
