@@ -67,6 +67,9 @@ feedback screens and teacher dashboards.
 Use `classifyScore` to map a percentage to a performance band, and
 `scoreAssessmentByTag` to summarize progress by skill or learning topic.
 
+`summarizeAssessment` reports both the question-type distribution and the
+difficulty distribution for dashboard or content-review views.
+
 Use `selectQuestions` to create focused views by tag or difficulty without
 mutating the original assessment.
 
