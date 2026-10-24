@@ -75,6 +75,11 @@ export interface TagScore {
   percentage: number;
 }
 
+export interface QuestionFilter {
+  tag?: string;
+  difficulty?: Difficulty;
+}
+
 const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "multiple-choice", "true-false", "short-answer"]);
 const SUPPORTED_DIFFICULTIES = new Set<Difficulty>(["introductory", "intermediate", "advanced"]);
 
@@ -423,6 +428,15 @@ export function getQuestionById(assessment: Assessment, questionId: string): Que
 /** Returns all questions of a given kind while preserving their original order. */
 export function listQuestionsByKind(assessment: Assessment, kind: QuestionKind): readonly Question[] {
   return assessment.questions.filter((question) => question.kind === kind);
+}
+
+/** Selects questions for adaptive or topic-specific quiz views. */
+export function selectQuestions(assessment: Assessment, filter: QuestionFilter): readonly Question[] {
+  return assessment.questions.filter((question) => {
+    const matchesTag = !filter.tag || question.tags?.some((tag) => normalizeAnswer(tag) === normalizeAnswer(filter.tag ?? ""));
+    const matchesDifficulty = !filter.difficulty || question.difficulty === filter.difficulty;
+    return matchesTag && matchesDifficulty;
+  });
 }
 
 function validateTags(tags: readonly string[] | undefined, path: string, issues: ValidationIssue[]): void {
