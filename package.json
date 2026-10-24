@@ -9,10 +9,10 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": ["dist", "README.md", "LICENSE", "CHANGELOG.md"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-      "test": "node test/smoke.mjs",
+    "test": "node test/smoke.mjs",
     "check": "npm run build && npm test"
   },
   "keywords": ["education", "assessment", "exams", "francophone", "typescript", "open-source"],
