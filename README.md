@@ -135,6 +135,8 @@ npm run check
 ```
 
 The command compiles the package and runs the dependency-free smoke tests.
+`npm run test:cli` also exercises the CLI end to end, including successful
+JSON/localized exports and expected non-zero error paths.
 
 ## CLI
 
