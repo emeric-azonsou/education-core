@@ -112,6 +112,9 @@ the imported result is validated through the same core rules.
 `export-md` creates a learner-facing Markdown document by default. Pass
 `--answers` to include the correction key for teachers.
 
+Exports support English and French labels. For the CLI, pass
+`--locale=fr` or `--locale=en`.
+
 `serializeAssessmentHtml` and `export-html` produce escaped standalone HTML,
 so prompts and titles can safely contain user-provided text.
 The generated structure uses language metadata, ordered questions, fieldsets
