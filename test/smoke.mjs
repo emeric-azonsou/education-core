@@ -6,9 +6,11 @@ import {
   isAssessmentInput,
   listQuestionsByKind,
   normalizeAnswer,
+  parseAssessmentCsv,
   parseAssessment,
   scoreAssessment,
   scoreAssessmentByTag,
+  serializeAssessmentCsv,
   serializeAssessment,
   summarizeAssessment,
   validateAnswers,
@@ -88,6 +90,21 @@ const serialized = serializeAssessment(assessment);
 assert.equal(parseAssessment(serialized).id, assessment.id);
 assert.throws(() => parseAssessment("not-json"), /Invalid assessment JSON/);
 assert.throws(() => parseAssessment("null"), /Invalid assessment document/);
+
+const csv = serializeAssessmentCsv(assessment);
+assert.match(csv, /id,kind,prompt,answer,points,choices,difficulty,tags/);
+const csvRoundTrip = parseAssessmentCsv(csv, {
+  id: "csv-copy",
+  title: "Copie CSV",
+  subject: "Mathématiques",
+});
+assert.equal(csvRoundTrip.questions.length, 2);
+assert.equal(csvRoundTrip.questions[0].prompt, "Quelle fraction est équivalente à 1/2 ?");
+assert.throws(() => parseAssessmentCsv("bad,header\n", {
+  id: "bad",
+  title: "Bad",
+  subject: "Bad",
+}), /Invalid assessment CSV header/);
 assert.deepEqual(validateAssessmentInput({
   id: "",
   title: "",
