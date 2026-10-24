@@ -124,6 +124,8 @@ assert.equal(selectQuestions(assessment, { offset: 1 })[0].id, "q2");
 assert.equal(selectQuestions(assessment, { limit: 1 })[0].id, "q1");
 assert.equal(selectQuestions(assessment, { offset: 1, limit: 1 })[0].id, "q2");
 assert.deepEqual(selectQuestions(assessment, { ids: ["q2", "q1"] }).map((question) => question.id), ["q1", "q2"]);
+assert.deepEqual(selectQuestions(assessment, { order: "points-desc" }).map((question) => question.id), ["q1", "q2"]);
+assert.deepEqual(selectQuestions(assessment, { order: "points-asc" }).map((question) => question.id), ["q2", "q1"]);
 assert.throws(() => selectQuestions(assessment, { minPoints: -1 }), /minPoints.*finite non-negative/);
 assert.throws(() => selectQuestions(assessment, { minPoints: 2, maxPoints: 1 }), /minPoints.*maxPoints/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ kind: "essay" })), /Unsupported question kind/);
@@ -132,6 +134,7 @@ assert.throws(() => selectQuestions(assessment, { offset: -1 }), /offset.*non-ne
 assert.throws(() => selectQuestions(assessment, { limit: 1.5 }), /limit.*non-negative integer/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ ids: [] })), /ids.*non-empty array/);
 assert.throws(() => selectQuestions(assessment, { ids: ["q1", "q1"] }), /ids.*duplicates/);
+assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ order: "random" })), /Unsupported question order/);
 const shuffledA = shuffleAssessment(assessment, 42);
 const shuffledB = shuffleAssessment(assessment, 42);
 assert.deepEqual(shuffledA, shuffledB);

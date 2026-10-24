@@ -21,6 +21,10 @@ const idSelection = run("select", "examples/assessment.json", "--ids=q1");
 assert.equal(idSelection.status, 0);
 assert.equal(JSON.parse(idSelection.stdout)[0].id, "q1");
 
+const orderedSelection = run("select", "examples/assessment.json", "--order=points-desc", "--limit=1");
+assert.equal(orderedSelection.status, 0);
+assert.equal(JSON.parse(orderedSelection.stdout)[0].points, 2);
+
 const invalidSelection = run("select", "examples/assessment.json", "--min-points=3", "--max-points=1");
 assert.equal(invalidSelection.status, 1);
 assert.match(invalidSelection.stderr, /minPoints.*maxPoints/);
