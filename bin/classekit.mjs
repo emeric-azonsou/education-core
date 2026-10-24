@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
-import { parseAssessment, scoreAssessment, serializeAssessment, serializeAssessmentCsv } from "../dist/index.js";
+import { parseAssessment, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentMarkdown } from "../dist/index.js";
 
 const [command, assessmentPath, answersPath] = process.argv.slice(2);
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> | classekit score <assessment.json> <answers.json> | classekit export-csv <assessment.json>");
+  console.error("Usage: classekit validate <assessment.json> | classekit score <assessment.json> <answers.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers]");
   process.exitCode = 2;
 }
 
@@ -14,7 +14,7 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
-if (!command || !assessmentPath || !["validate", "score", "export-csv"].includes(command)) {
+if (!command || !assessmentPath || !["validate", "score", "export-csv", "export-md"].includes(command)) {
   usage();
 } else {
   try {
@@ -23,6 +23,8 @@ if (!command || !assessmentPath || !["validate", "score", "export-csv"].includes
       console.log(serializeAssessment(assessment));
     } else if (command === "export-csv") {
       console.log(serializeAssessmentCsv(assessment));
+    } else if (command === "export-md") {
+      console.log(serializeAssessmentMarkdown(assessment, process.argv.includes("--answers")));
     } else {
       if (!answersPath) {
         usage();
