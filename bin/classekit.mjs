@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
-import { parseAssessment, parseScoreResult, recommendReviewTags, scoreAssessment, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, shuffleAssessment, summarizeAssessment, summarizeScoreAttempts, validateAnswers, validateAssessmentInput, validateScoreResult } from "../dist/index.js";
+import { parseAssessment, parseScoreResult, recommendReviewTags, scoreAssessment, selectQuestions, serializeAssessment, serializeAssessmentCsv, serializeAssessmentHtml, serializeAssessmentMarkdown, shuffleAssessment, summarizeAssessment, summarizeScoreAttempts, validateAnswers, validateAssessmentInput, validateScoreResult } from "../dist/index.js";
 
 const args = process.argv.slice(2);
 const [command, assessmentPath, answersPath] = args;
@@ -11,10 +11,16 @@ const thresholdArgument = process.argv.find((argument) => argument.startsWith("-
 const threshold = thresholdArgument ? Number(thresholdArgument.slice("--threshold=".length)) : 70;
 const seedArgument = process.argv.find((argument) => argument.startsWith("--seed="));
 const seed = seedArgument ? Number(seedArgument.slice("--seed=".length)) : 1;
+const tagArgument = process.argv.find((argument) => argument.startsWith("--tag="));
+const tagsArgument = process.argv.find((argument) => argument.startsWith("--tags="));
+const difficultyArgument = process.argv.find((argument) => argument.startsWith("--difficulty="));
+const kindArgument = process.argv.find((argument) => argument.startsWith("--kind="));
+const minPointsArgument = process.argv.find((argument) => argument.startsWith("--min-points="));
+const maxPointsArgument = process.argv.find((argument) => argument.startsWith("--max-points="));
 const partialCredit = process.argv.includes("--partial-credit");
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
+  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit select <assessment.json> [--tag=tag] [--tags=a,b] [--difficulty=level] [--kind=kind] [--min-points=n] [--max-points=n] | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -22,7 +28,7 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
-if (!command || !assessmentPath || !["validate", "validate-score", "summary", "score", "recommend", "shuffle", "stats", "export-json", "export-csv", "export-md", "export-html"].includes(command)) {
+if (!command || !assessmentPath || !["validate", "validate-score", "summary", "select", "score", "recommend", "shuffle", "stats", "export-json", "export-csv", "export-md", "export-html"].includes(command)) {
   usage();
 } else {
   try {
@@ -48,6 +54,17 @@ if (!command || !assessmentPath || !["validate", "validate-score", "summary", "s
       console.log(serializeAssessment(assessment));
       } else if (command === "summary") {
       console.log(JSON.stringify(summarizeAssessment(assessment), null, 2));
+      } else if (command === "select") {
+        const tags = tagsArgument?.slice("--tags=".length).split(",").map((tag) => tag.trim()).filter(Boolean);
+        const selected = selectQuestions(assessment, {
+          ...(tagArgument ? { tag: tagArgument.slice("--tag=".length) } : {}),
+          ...(tags?.length ? { tags } : {}),
+          ...(difficultyArgument ? { difficulty: difficultyArgument.slice("--difficulty=".length) } : {}),
+          ...(kindArgument ? { kind: kindArgument.slice("--kind=".length) } : {}),
+          ...(minPointsArgument ? { minPoints: Number(minPointsArgument.slice("--min-points=".length)) } : {}),
+          ...(maxPointsArgument ? { maxPoints: Number(maxPointsArgument.slice("--max-points=".length)) } : {}),
+        });
+        console.log(JSON.stringify(selected, null, 2));
       } else if (command === "export-json") {
       console.log(serializeAssessment(assessment));
       } else if (command === "export-csv") {
