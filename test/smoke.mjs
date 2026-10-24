@@ -274,6 +274,50 @@ assert.throws(() => createAssessment({
   questions: [{ id: "q1", kind: "short-answer", prompt: "Question", hint: " ", answer: "ok", points: 1 }],
 }), /hint.*must not be empty/);
 assert.throws(() => createAssessment({
+  id: "invalid-language",
+  title: "Invalid",
+  subject: "Tests",
+  language: " ",
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1 }],
+}), /language.*must not be empty/);
+assert.throws(() => createAssessment({
+  id: "duplicate-objectives",
+  title: "Invalid",
+  subject: "Tests",
+  learningObjectives: ["Comprendre", "comprendre"],
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1 }],
+}), /learningObjectives.*duplicates/);
+assert.throws(() => createAssessment({
+  id: "invalid-explanation",
+  title: "Invalid",
+  subject: "Tests",
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", explanation: " ", answer: "ok", points: 1 }],
+}), /explanation.*must not be empty/);
+assert.throws(() => createAssessment({
+  id: "invalid-choice",
+  title: "Invalid",
+  subject: "Tests",
+  questions: [{ id: "q1", kind: "single-choice", prompt: "Question", choices: ["A", " "], answer: "A", points: 1 }],
+}), /choices.*empty values/);
+assert.throws(() => createAssessment({
+  id: "invalid-answer-space",
+  title: "Invalid",
+  subject: "Tests",
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: " ", points: 1 }],
+}), /answer.*empty values/);
+assert.throws(() => createAssessment({
+  id: "duplicate-answer",
+  title: "Invalid",
+  subject: "Tests",
+  questions: [{ id: "q1", kind: "multiple-choice", prompt: "Question", choices: ["A", "B"], answer: ["A", "a"], points: 1 }],
+}), /answer.*duplicates/);
+assert.throws(() => createAssessment({
+  id: "array-single",
+  title: "Invalid",
+  subject: "Tests",
+  questions: [{ id: "q1", kind: "single-choice", prompt: "Question", choices: ["A", "B"], answer: ["A"], points: 1 }],
+}), /answer.*must be a string/);
+assert.throws(() => createAssessment({
   id: "invalid-estimate",
   title: "Invalid",
   subject: "Tests",
