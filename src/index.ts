@@ -95,6 +95,14 @@ export interface TagScore {
   percentage: number;
 }
 
+export interface ScoreStatistics {
+  attemptCount: number;
+  averagePercentage: number;
+  highestPercentage: number;
+  lowestPercentage: number;
+  passRate: number;
+}
+
 export interface QuestionFilter {
   tag?: string;
   difficulty?: Difficulty;
@@ -299,6 +307,10 @@ function partialMultipleChoicePoints(submitted: string | string[], expected: Ans
   return Math.round(points * ratio * 100) / 100;
 }
 
+function roundPercentage(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 /** Checks submitted answer keys before scoring or persistence. */
 export function validateAnswers(
   assessment: Assessment,
@@ -352,6 +364,28 @@ export function scoreAssessmentByTag(
     ...values,
     percentage: values.totalPoints === 0 ? 0 : Math.round((values.earnedPoints / values.totalPoints) * 10000) / 100,
   }));
+}
+
+/** Aggregates repeated attempts for learner progress dashboards. */
+export function summarizeScoreAttempts(
+  results: readonly ScoreResult[],
+  passingPercentage = 50,
+): ScoreStatistics {
+  if (!Number.isFinite(passingPercentage) || passingPercentage < 0 || passingPercentage > 100) {
+    throw new RangeError("Passing percentage must be between 0 and 100");
+  }
+  if (results.length === 0) {
+    return { attemptCount: 0, averagePercentage: 0, highestPercentage: 0, lowestPercentage: 0, passRate: 0 };
+  }
+  const percentages = results.map((result) => result.percentage);
+  const passed = percentages.filter((percentage) => percentage >= passingPercentage).length;
+  return {
+    attemptCount: results.length,
+    averagePercentage: roundPercentage(percentages.reduce((total, percentage) => total + percentage, 0) / results.length),
+    highestPercentage: Math.max(...percentages),
+    lowestPercentage: Math.min(...percentages),
+    passRate: roundPercentage((passed / results.length) * 100),
+  };
 }
 
 /** Normalizes human-entered answers for accent- and case-insensitive comparison. */
