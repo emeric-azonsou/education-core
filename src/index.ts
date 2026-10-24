@@ -335,13 +335,23 @@ export function validateAnswers(
   assessment: Assessment,
   answers: Readonly<Record<string, AnswerValue>>,
 ): ValidationIssue[] {
-  const questionIds = new Set(assessment.questions.map((question) => question.id));
-  return Object.keys(answers)
-    .filter((questionId) => !questionIds.has(questionId))
-    .map((questionId) => ({
-      path: `answers.${questionId}`,
-      message: "does not match an assessment question",
-    }));
+  const questions = new Map(assessment.questions.map((question) => [question.id, question]));
+  const issues: ValidationIssue[] = [];
+  for (const [questionId, answer] of Object.entries(answers)) {
+    const question = questions.get(questionId);
+    if (!question) {
+      issues.push({ path: `answers.${questionId}`, message: "does not match an assessment question" });
+      continue;
+    }
+    if (typeof answer !== "string" && !Array.isArray(answer)) {
+      issues.push({ path: `answers.${questionId}`, message: "must be a string or an array of strings" });
+    } else if (Array.isArray(answer) && !answer.every((value) => typeof value === "string")) {
+      issues.push({ path: `answers.${questionId}`, message: "array values must be strings" });
+    } else if (question.kind !== "multiple-choice" && Array.isArray(answer)) {
+      issues.push({ path: `answers.${questionId}`, message: "must be a string for this question type" });
+    }
+  }
+  return issues;
 }
 
 /** Converts a percentage into a configurable pedagogical performance band. */
