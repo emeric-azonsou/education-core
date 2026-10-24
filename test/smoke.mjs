@@ -94,6 +94,33 @@ assert.throws(() => createAssessment({
     points: 1,
   }],
 }), /must be an array of choices/);
+const acceptedAnswerAssessment = createAssessment({
+  id: "accepted",
+  title: "Réponses acceptées",
+  subject: "Français",
+  questions: [{
+    id: "q1",
+    kind: "short-answer",
+    prompt: "Quel est un synonyme de rapide ?",
+    answer: "vite",
+    acceptedAnswers: ["rapidement", "VITE"],
+    points: 1,
+  }],
+});
+assert.equal(scoreAssessment(acceptedAnswerAssessment, { q1: "rapidement" }).percentage, 100);
+assert.throws(() => createAssessment({
+  id: "invalid-accepted",
+  title: "Invalid",
+  subject: "Français",
+  questions: [{
+    id: "q1",
+    kind: "short-answer",
+    prompt: "Question",
+    answer: "oui",
+    acceptedAnswers: ["Oui", "oui"],
+    points: 1,
+  }],
+}), /acceptedAnswers.*must not contain duplicates/);
 assert.equal(classifyScore(92), "mastery");
 assert.equal(classifyScore(68), "developing");
 assert.throws(() => classifyScore(101), /between 0 and 100/);
@@ -127,7 +154,7 @@ assert.throws(() => parseAssessment("not-json"), /Invalid assessment JSON/);
 assert.throws(() => parseAssessment("null"), /Invalid assessment document/);
 
 const csv = serializeAssessmentCsv(assessment);
-assert.match(csv, /id,kind,prompt,answer,points,choices,difficulty,tags/);
+assert.match(csv, /id,kind,prompt,answer,acceptedAnswers,points,choices,difficulty,tags/);
 const csvRoundTrip = parseAssessmentCsv(csv, {
   id: "csv-copy",
   title: "Copie CSV",
@@ -141,6 +168,12 @@ const multipleCsv = parseAssessmentCsv(serializeAssessmentCsv(multipleChoice), {
   subject: "Sciences",
 });
 assert.deepEqual(multipleCsv.questions[0].answer, ["Mercure", "Vénus"]);
+const acceptedCsv = parseAssessmentCsv(serializeAssessmentCsv(acceptedAnswerAssessment), {
+  id: "accepted-csv",
+  title: "Accepted CSV",
+  subject: "Français",
+});
+assert.deepEqual(acceptedCsv.questions[0].acceptedAnswers, ["rapidement", "VITE"]);
 assert.throws(() => parseAssessmentCsv("bad,header\n", {
   id: "bad",
   title: "Bad",
