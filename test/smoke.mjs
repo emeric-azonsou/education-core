@@ -136,6 +136,8 @@ assert.deepEqual(selectQuestions(assessment, { order: "difficulty-asc" }).map((q
 assert.deepEqual(selectQuestions(assessment, { order: "difficulty-desc" }).map((question) => question.id), ["q2", "q1"]);
 assert.deepEqual(selectQuestions(assessment, { order: "kind-asc" }).map((question) => question.id), ["q1", "q2"]);
 assert.deepEqual(selectQuestions(assessment, { order: "kind-desc" }).map((question) => question.id), ["q2", "q1"]);
+assert.deepEqual(selectQuestions(assessment, { seed: 42 }), selectQuestions(assessment, { seed: 42 }));
+assert.equal(selectQuestions(assessment, { seed: 42 }).length, 2);
 assert.deepEqual(selectQuestions(assessment, { minEstimatedSeconds: 30 }).map((question) => question.id), ["q1"]);
 assert.equal(selectQuestions(assessment, { maxEstimatedSeconds: 30 }).length, 0);
 assert.throws(() => selectQuestions(assessment, { minPoints: -1 }), /minPoints.*finite non-negative/);
@@ -144,6 +146,7 @@ assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ kind: "ess
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ tags: ["fractions", 1] })), /tags.*array of strings/);
 assert.throws(() => selectQuestions(assessment, { anyTags: [] }), /anyTags.*non-empty array/);
 assert.throws(() => selectQuestions(assessment, { excludeTags: [] }), /excludeTags.*non-empty array/);
+assert.throws(() => selectQuestions(assessment, { seed: 1.5 }), /seed.*integer/);
 assert.throws(() => selectQuestions(assessment, { offset: -1 }), /offset.*non-negative integer/);
 assert.throws(() => selectQuestions(assessment, { limit: 1.5 }), /limit.*non-negative integer/);
 assert.throws(() => selectQuestions(assessment, /** @type {any} */ ({ ids: [] })), /ids.*non-empty array/);
