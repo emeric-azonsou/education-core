@@ -203,12 +203,15 @@ assert.match(markdown, /# Fractions de base/);
 assert.match(markdown, /Duration:\*\* 30 minutes/);
 assert.doesNotMatch(markdown, /Answer/);
 assert.match(serializeAssessmentMarkdown(assessment, true), /\*\*Answer:\*\* 2\/4/);
+assert.match(serializeAssessmentMarkdown(assessment, false, "fr"), /Matière/);
+assert.match(serializeAssessmentMarkdown(assessment, false, "fr"), /Questions/);
 const html = serializeAssessmentHtml(assessment);
 assert.match(html, /<!doctype html>/);
 assert.match(html, /Mathématiques/);
 assert.match(html, /Duration:<\/strong> 30 minutes/);
 assert.match(html, /aria-labelledby="question-1"/);
 assert.match(html, /<ol>/);
+assert.match(serializeAssessmentHtml(assessment, false, "fr"), /Matière:<\/strong>/);
 assert.doesNotMatch(html, /Answer:/);
 assert.match(serializeAssessmentHtml(createAssessment({
   id: "unsafe",
