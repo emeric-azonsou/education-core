@@ -188,7 +188,8 @@ emits the normalized, validated assessment document.
 
 `select` outputs the matching questions as JSON. Combine `--tag`, `--tags`,
 `--difficulty`, `--kind`, `--min-points` and `--max-points` to build focused
-question sets for review or quiz generation.
+question sets for review or quiz generation. Unsupported filter values are
+rejected explicitly.
 
 Exports support English and French labels. For the CLI, pass
 `--locale=fr` or `--locale=en`.

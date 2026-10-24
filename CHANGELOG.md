@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Hardened question-filter APIs and CLI errors for unsupported types, difficulties and malformed filter values.
 - Added the CLI `select` command for composing tag, difficulty, kind and point-range filters.
 - Added normalized tag counts to summaries and a dedicated tag-based question listing helper.
 - Added difficulty-specific question listing and validated min/max point filters.
