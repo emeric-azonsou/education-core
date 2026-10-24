@@ -1,5 +1,12 @@
 import assert from "node:assert/strict";
-import { createAssessment, scoreAssessment, summarizeAssessment, validateAssessmentInput } from "../dist/index.js";
+import {
+  createAssessment,
+  getQuestionById,
+  listQuestionsByKind,
+  scoreAssessment,
+  summarizeAssessment,
+  validateAssessmentInput,
+} from "../dist/index.js";
 
 const assessment = createAssessment({
   id: "fractions-01",
@@ -35,6 +42,9 @@ assert.deepEqual(summarizeAssessment(assessment), {
     "short-answer": 0,
   },
 });
+assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
+assert.equal(getQuestionById(assessment, "missing"), undefined);
+assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
 assert.deepEqual(validateAssessmentInput({
   id: "",
   title: "",
