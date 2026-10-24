@@ -7,6 +7,9 @@ This package gives TypeScript applications a small, dependency-free interface fo
 Assessment documents use schema version `1` by default. Unsupported versions
 are rejected explicitly so future migrations can be introduced safely.
 
+Set `passingPercentage` to customize the success threshold; scored results
+include a boolean `passed` field and default to a 50% threshold.
+
 Supported question types are `single-choice`, `multiple-choice`, `true-false`
 and `short-answer`. Multiple-choice answers are arrays and are scored without
 depending on their order.
