@@ -26,9 +26,10 @@ const orderArgument = process.argv.find((argument) => argument.startsWith("--ord
 const minTimeArgument = process.argv.find((argument) => argument.startsWith("--min-time="));
 const maxTimeArgument = process.argv.find((argument) => argument.startsWith("--max-time="));
 const partialCredit = process.argv.includes("--partial-credit");
+const idsOnly = process.argv.includes("--ids-only");
 
 function usage() {
-  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit select <assessment.json> [--ids=q1,q2] [--tag=tag] [--tags=a,b] [--any-tags=a,b] [--exclude-tags=a,b] [--difficulty=level] [--kind=kind] [--min-points=n] [--max-points=n] [--min-time=n] [--max-time=n] [--order=assessment|points-asc|points-desc|time-asc|time-desc|difficulty-asc|difficulty-desc|kind-asc|kind-desc] [--offset=n] [--limit=n] | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
+  console.error("Usage: classekit validate <assessment.json> [--json] | classekit validate-score <result.json> | classekit summary <assessment.json> | classekit select <assessment.json> [--ids=q1,q2] [--ids-only] [--tag=tag] [--tags=a,b] [--any-tags=a,b] [--exclude-tags=a,b] [--difficulty=level] [--kind=kind] [--min-points=n] [--max-points=n] [--min-time=n] [--max-time=n] [--order=assessment|points-asc|points-desc|time-asc|time-desc|difficulty-asc|difficulty-desc|kind-asc|kind-desc] [--offset=n] [--limit=n] | classekit score <assessment.json> <answers.json> [--partial-credit] | classekit recommend <assessment.json> <answers.json> [--threshold=70] | classekit shuffle <assessment.json> [--seed=42] | classekit stats <result-1.json> <result-2.json> ... | classekit export-json <assessment.json> | classekit export-csv <assessment.json> | classekit export-md <assessment.json> [--answers] [--locale=fr|en] | classekit export-html <assessment.json> [--answers] [--locale=fr|en]");
   process.exitCode = 2;
 }
 
@@ -84,7 +85,7 @@ if (!command || !assessmentPath || !["validate", "validate-score", "summary", "s
           ...(maxTimeArgument ? { maxEstimatedSeconds: Number(maxTimeArgument.slice("--max-time=".length)) } : {}),
           ...(seedArgument ? { seed } : {}),
         });
-        console.log(JSON.stringify(selected, null, 2));
+        console.log(JSON.stringify(idsOnly ? selected.map((question) => question.id) : selected, null, 2));
       } else if (command === "export-json") {
       console.log(serializeAssessment(assessment));
       } else if (command === "export-csv") {
