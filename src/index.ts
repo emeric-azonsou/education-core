@@ -40,6 +40,17 @@ export interface ScoreResult {
   percentage: number;
   correctQuestionIds: readonly string[];
   incorrectQuestionIds: readonly string[];
+  unansweredQuestionIds: readonly string[];
+  details: readonly QuestionScore[];
+}
+
+export interface QuestionScore {
+  questionId: string;
+  submitted?: string;
+  expected: string;
+  correct: boolean;
+  earnedPoints: number;
+  maxPoints: number;
 }
 
 export interface AssessmentSummary {
@@ -128,18 +139,31 @@ export function validateAssessmentInput(input: AssessmentInput): ValidationIssue
 export function scoreAssessment(assessment: Assessment, answers: Readonly<Record<string, string>>): ScoreResult {
   const correctQuestionIds: string[] = [];
   const incorrectQuestionIds: string[] = [];
+  const unansweredQuestionIds: string[] = [];
+  const details: QuestionScore[] = [];
   let earnedPoints = 0;
 
   for (const question of assessment.questions) {
     const rawAnswer = answers[question.id];
     const submitted = rawAnswer === undefined ? undefined : normalizeAnswer(rawAnswer);
     const expected = normalizeAnswer(question.answer);
-    if (submitted && submitted === expected) {
+    const isUnanswered = submitted === undefined || submitted.length === 0;
+    const correct = !isUnanswered && submitted === expected;
+    if (correct) {
       earnedPoints += question.points;
       correctQuestionIds.push(question.id);
     } else {
       incorrectQuestionIds.push(question.id);
     }
+    if (isUnanswered) unansweredQuestionIds.push(question.id);
+    details.push({
+      questionId: question.id,
+      ...(rawAnswer === undefined ? {} : { submitted: rawAnswer }),
+      expected: question.answer,
+      correct,
+      earnedPoints: correct ? question.points : 0,
+      maxPoints: question.points,
+    });
   }
 
   return {
@@ -148,6 +172,8 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
     percentage: assessment.totalPoints === 0 ? 0 : Math.round((earnedPoints / assessment.totalPoints) * 10000) / 100,
     correctQuestionIds,
     incorrectQuestionIds,
+    unansweredQuestionIds,
+    details,
   };
 }
 
