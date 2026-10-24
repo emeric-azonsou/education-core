@@ -23,6 +23,7 @@ export interface AssessmentInput {
   difficulty?: Difficulty;
   tags?: readonly string[];
   learningObjectives?: readonly string[];
+  durationMinutes?: number;
   questions: readonly Question[];
 }
 
@@ -136,6 +137,10 @@ export function validateAssessmentInput(input: AssessmentInput): ValidationIssue
   validateTags(input.tags, "tags", issues);
   if (input.learningObjectives?.some((objective) => !objective.trim())) {
     issues.push({ path: "learningObjectives", message: "must not contain empty values" });
+  }
+  if (input.durationMinutes !== undefined &&
+      (!Number.isFinite(input.durationMinutes) || input.durationMinutes <= 0)) {
+    issues.push({ path: "durationMinutes", message: "must be a positive number" });
   }
   if (input.questions.length === 0) issues.push({ path: "questions", message: "must contain at least one question" });
 
@@ -377,6 +382,7 @@ export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswe
   const lines = [`# ${assessment.title}`, "", `- **Subject:** ${assessment.subject}`, `- **Language:** ${assessment.language}`];
   if (assessment.difficulty) lines.push(`- **Difficulty:** ${assessment.difficulty}`);
   if (assessment.tags?.length) lines.push(`- **Tags:** ${assessment.tags.join(", ")}`);
+  if (assessment.durationMinutes) lines.push(`- **Duration:** ${assessment.durationMinutes} minutes`);
   lines.push("", "## Questions", "");
 
   assessment.questions.forEach((question, index) => {
@@ -403,7 +409,8 @@ export function serializeAssessmentHtml(assessment: Assessment, includeAnswers =
     const answer = includeAnswers ? `<p><strong>Answer:</strong> ${escapeHtml(getAnswerValues(question.answer).join(", "))}</p>` : "";
     return `<li><section aria-labelledby="question-${index + 1}"><h2 id="question-${index + 1}">${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${choices}${answer}</section></li>`;
   }).join("\n");
-  return `<!doctype html><html lang="${escapeHtml(assessment.language)}"><head><meta charset="utf-8"><title>${escapeHtml(assessment.title)}</title></head><body><main><h1>${escapeHtml(assessment.title)}</h1><p><strong>Subject:</strong> ${escapeHtml(assessment.subject)}</p><ol>${questions}</ol></main></body></html>\n`;
+  const duration = assessment.durationMinutes ? `<p><strong>Duration:</strong> ${assessment.durationMinutes} minutes</p>` : "";
+  return `<!doctype html><html lang="${escapeHtml(assessment.language)}"><head><meta charset="utf-8"><title>${escapeHtml(assessment.title)}</title></head><body><main><h1>${escapeHtml(assessment.title)}</h1><p><strong>Subject:</strong> ${escapeHtml(assessment.subject)}</p>${duration}<ol>${questions}</ol></main></body></html>\n`;
 }
 
 /** Imports a question CSV document and validates the resulting assessment. */
