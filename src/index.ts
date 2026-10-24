@@ -834,6 +834,7 @@ export function getQuestionById(assessment: Assessment, questionId: string): Que
 
 /** Returns all questions of a given kind while preserving their original order. */
 export function listQuestionsByKind(assessment: Assessment, kind: QuestionKind): readonly Question[] {
+  if (!SUPPORTED_KINDS.has(kind)) throw new RangeError(`Unsupported question kind: ${String(kind)}`);
   return assessment.questions.filter((question) => question.kind === kind);
 }
 
@@ -845,11 +846,13 @@ export function listQuestionsByTag(assessment: Assessment, tag: string): readonl
 
 /** Returns all questions at a given difficulty while preserving their original order. */
 export function listQuestionsByDifficulty(assessment: Assessment, difficulty: Difficulty): readonly Question[] {
+  if (!SUPPORTED_DIFFICULTIES.has(difficulty)) throw new RangeError(`Unsupported difficulty: ${String(difficulty)}`);
   return assessment.questions.filter((question) => question.difficulty === difficulty);
 }
 
 /** Selects questions for adaptive or topic-specific quiz views. */
 export function selectQuestions(assessment: Assessment, filter: QuestionFilter): readonly Question[] {
+  validateQuestionFilter(filter);
   if (filter.minPoints !== undefined && (!Number.isFinite(filter.minPoints) || filter.minPoints < 0)) {
     throw new RangeError("Question minPoints must be a finite non-negative number");
   }
@@ -891,6 +894,28 @@ function validateTags(tags: readonly string[] | undefined, path: string, issues:
   const normalizedTags = tags.map((tag) => tag.trim().toLowerCase());
   if (new Set(normalizedTags).size !== normalizedTags.length) {
     issues.push({ path, message: "must not contain duplicates" });
+  }
+}
+
+function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilter {
+  if (!isRecord(filter)) throw new TypeError("Question filter must be an object");
+  if (filter.tag !== undefined && typeof filter.tag !== "string") {
+    throw new TypeError("Question filter tag must be a string");
+  }
+  if (filter.tags !== undefined && !isStringArray(filter.tags)) {
+    throw new TypeError("Question filter tags must be an array of strings");
+  }
+  if (filter.difficulty !== undefined && (!SUPPORTED_DIFFICULTIES.has(filter.difficulty as Difficulty))) {
+    throw new RangeError(`Unsupported difficulty: ${String(filter.difficulty)}`);
+  }
+  if (filter.kind !== undefined && (!SUPPORTED_KINDS.has(filter.kind as QuestionKind))) {
+    throw new RangeError(`Unsupported question kind: ${String(filter.kind)}`);
+  }
+  if (filter.minPoints !== undefined && typeof filter.minPoints !== "number") {
+    throw new TypeError("Question minPoints must be a number");
+  }
+  if (filter.maxPoints !== undefined && typeof filter.maxPoints !== "number") {
+    throw new TypeError("Question maxPoints must be a number");
   }
 }
 
