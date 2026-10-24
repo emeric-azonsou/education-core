@@ -11,6 +11,7 @@ import {
   normalizeAnswer,
   parseAssessmentCsv,
   parseAssessment,
+  parseScoreResult,
   scoreAssessment,
   scoreAssessmentByTag,
   recommendReviewTags,
@@ -21,6 +22,7 @@ import {
   serializeAssessmentCsv,
   serializeAssessmentMarkdown,
   serializeAssessment,
+  serializeScoreResult,
   summarizeAssessment,
   validateAnswers,
   validateAssessmentInput,
@@ -427,6 +429,10 @@ assert.deepEqual(scoreAssessment(assessment, {
 });
 const perfectAttempt = scoreAssessment(assessment, { q1: "2/4", q2: "true" });
 const emptyAttempt = scoreAssessment(assessment, {});
+assert.equal(parseScoreResult(serializeScoreResult(perfectAttempt)).percentage, 100);
+assert.throws(() => parseScoreResult("not-json"), /Invalid score result JSON/);
+assert.throws(() => parseScoreResult(JSON.stringify({ percentage: 100 })), /Invalid score result document/);
+assert.throws(() => serializeScoreResult(/** @type {any} */ ({ percentage: 100 })), /Invalid score result/);
 assert.deepEqual(summarizeScoreAttempts([perfectAttempt, scoreAssessment(assessment, { q1: "2/4", q2: "false" }), emptyAttempt]), {
   attemptCount: 3,
   averagePercentage: 55.56,
