@@ -81,6 +81,8 @@ and choice variants while preserving the original assessment.
 
 When handling untrusted JSON, call `isAssessmentInput` before passing data to
 `createAssessment`. Invalid runtime shapes are rejected with a clear error.
+`isQuestionInput` is available when validating individual records from an
+importer or editor.
 
 ## Design goals
 
