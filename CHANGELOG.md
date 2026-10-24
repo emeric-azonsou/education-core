@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Unified assessment and selected-question summary calculations to keep dashboard metrics consistent.
 - Added selected question IDs to API and CLI selection summaries.
 - Enriched selected-question summaries with type, difficulty and tag distributions.
 - Added reusable selected-question summaries and the CLI `select --summary-only` mode.
