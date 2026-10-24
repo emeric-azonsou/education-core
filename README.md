@@ -34,6 +34,10 @@ const result = scoreAssessment(assessment, { q1: "5" });
 // { earnedPoints: 2, totalPoints: 2, percentage: 100, ... }
 ```
 
+For dashboards or content review screens, use `summarizeAssessment(assessment)`
+to obtain the number of questions, total points and distribution by question
+type.
+
 ## Design goals
 
 - no runtime dependencies;
@@ -41,6 +45,14 @@ const result = scoreAssessment(assessment, { q1: "5" });
 - immutable caller input handling;
 - useful in browser, server and offline-first applications;
 - small interface with room for adapters such as PDF/DOCX exporters.
+
+## Development
+
+```bash
+npm run check
+```
+
+The command compiles the package and runs the dependency-free smoke tests.
 
 ## Contributing
 
