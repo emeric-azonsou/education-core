@@ -12,6 +12,7 @@ export interface Question {
   answer: AnswerValue;
   acceptedAnswers?: readonly string[];
   explanation?: string;
+  hint?: string;
   difficulty?: Difficulty;
   tags?: readonly string[];
 }
@@ -203,6 +204,7 @@ export function validateAssessmentInput(input: unknown): ValidationIssue[] {
     if (ids.has(question.id)) issues.push({ path: `${path}.id`, message: "must be unique" });
     ids.add(question.id);
     if (!question.prompt.trim()) issues.push({ path: `${path}.prompt`, message: "must not be empty" });
+    if (question.hint !== undefined && !question.hint.trim()) issues.push({ path: `${path}.hint`, message: "must not be empty" });
     if (!SUPPORTED_KINDS.has(question.kind)) issues.push({ path: `${path}.kind`, message: "is not supported" });
     if (question.difficulty && !SUPPORTED_DIFFICULTIES.has(question.difficulty)) {
       issues.push({ path: `${path}.difficulty`, message: "is not supported" });
@@ -494,6 +496,7 @@ export function serializeAssessmentMarkdown(assessment: Assessment, includeAnswe
     }
     if (includeAnswers) lines.push(`   - **${labels.answer}:** ${getAnswerValues(question.answer).join(", ")}`);
     if (question.explanation) lines.push(`   - **${labels.explanation}:** ${question.explanation}`);
+    if (question.hint) lines.push(`   - **${labels.hint}:** ${question.hint}`);
     lines.push("");
   });
   return `${lines.join("\n").trim()}\n`;
@@ -509,7 +512,8 @@ export function serializeAssessmentHtml(assessment: Assessment, includeAnswers =
     const answer = includeAnswers ? `<p><strong>${labels.answer}:</strong> ${escapeHtml(getAnswerValues(question.answer).join(", "))}</p>` : "";
     const difficulty = question.difficulty ? `<p><strong>${labels.difficulty}:</strong> ${escapeHtml(question.difficulty)}</p>` : "";
     const explanation = question.explanation ? `<p><strong>${labels.explanation}:</strong> ${escapeHtml(question.explanation)}</p>` : "";
-    return `<li><section aria-labelledby="question-${index + 1}"><h2 id="question-${index + 1}">${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${difficulty}${choices}${answer}${explanation}</section></li>`;
+    const hint = question.hint ? `<p><strong>${labels.hint}:</strong> ${escapeHtml(question.hint)}</p>` : "";
+    return `<li><section aria-labelledby="question-${index + 1}"><h2 id="question-${index + 1}">${escapeHtml(question.prompt)}</h2><p>${question.points} point${question.points === 1 ? "" : "s"}</p>${difficulty}${choices}${answer}${hint}${explanation}</section></li>`;
   }).join("\n");
   const duration = assessment.durationMinutes ? `<p><strong>${labels.duration}:</strong> ${assessment.durationMinutes} ${labels.minutes}</p>` : "";
   const objectives = assessment.learningObjectives?.length ? `<p><strong>${labels.objectives}:</strong> ${assessment.learningObjectives.map(escapeHtml).join(", ")}</p>` : "";
@@ -680,10 +684,11 @@ function exportLabels(locale: ExportLocale): {
   choices: string;
   answer: string;
   explanation: string;
+  hint: string;
 } {
   return locale === "fr"
-    ? { subject: "Matière", language: "Langue", difficulty: "Difficulté", tags: "Tags", objectives: "Objectifs", duration: "Durée", minutes: "minutes", questions: "Questions", choices: "Choix pour la question", answer: "Réponse", explanation: "Explication" }
-    : { subject: "Subject", language: "Language", difficulty: "Difficulty", tags: "Tags", objectives: "Objectives", duration: "Duration", minutes: "minutes", questions: "Questions", choices: "Choices for question", answer: "Answer", explanation: "Explanation" };
+    ? { subject: "Matière", language: "Langue", difficulty: "Difficulté", tags: "Tags", objectives: "Objectifs", duration: "Durée", minutes: "minutes", questions: "Questions", choices: "Choix pour la question", answer: "Réponse", explanation: "Explication", hint: "Indice" }
+    : { subject: "Subject", language: "Language", difficulty: "Difficulty", tags: "Tags", objectives: "Objectives", duration: "Duration", minutes: "minutes", questions: "Questions", choices: "Choices for question", answer: "Answer", explanation: "Explanation", hint: "Hint" };
 }
 
 function parseCsvRows(csv: string): string[][] {
