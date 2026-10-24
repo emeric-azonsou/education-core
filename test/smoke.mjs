@@ -81,6 +81,10 @@ const multipleChoice = createAssessment({
   }],
 });
 assert.equal(scoreAssessment(multipleChoice, { q1: ["VÉNUS", "mercure"] }).percentage, 100);
+const partialResult = scoreAssessment(multipleChoice, { q1: ["mercure"] }, { partialCredit: true });
+assert.equal(partialResult.earnedPoints, 1);
+assert.equal(partialResult.percentage, 50);
+assert.equal(partialResult.correctQuestionIds.length, 0);
 assert.throws(() => createAssessment({
   id: "invalid-multiple",
   title: "Invalid",
