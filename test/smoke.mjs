@@ -183,11 +183,20 @@ assert.deepEqual(validateAnswers(multipleChoice, { q1: ["Mercure"] }), []);
 assert.deepEqual(validateAnswers(multipleChoice, /** @type {any} */ ({ q1: ["Mercure", 1] })), [
   { path: "answers.q1", message: "array values must be strings" },
 ]);
+assert.deepEqual(validateAnswers(assessment, /** @type {any} */ (null)), [
+  { path: "answers", message: "must be an object" },
+]);
+assert.throws(() => scoreAssessment(assessment, /** @type {any} */ (null)), /Answers must be an object/);
 assert.equal(normalizeAnswer("ÉLÈVE"), "eleve");
 assert.equal(isAssessmentInput(assessment), true);
 assert.equal(isAssessmentInput({ id: "broken" }), false);
 assert.equal(isQuestionInput(assessment.questions[0]), true);
 assert.equal(isQuestionInput(null), false);
+assert.equal(isQuestionInput({ id: "q", prompt: "Question", kind: "short-answer", points: 1, answer: "ok", choices: [1] }), false);
+assert.equal(isQuestionInput({ id: "q", prompt: "Question", kind: "short-answer", points: 1, answer: ["ok", 1] }), false);
+assert.deepEqual(validateAssessmentInput({ id: "bad-shape", title: "Bad", subject: "Tests", tags: "not-an-array", questions: [] }), [
+  { path: "assessment", message: "must be a valid assessment object" },
+]);
 assert.throws(() => createAssessment(/** @type {any} */ ({ id: "broken" })), /Invalid assessment input/);
 try {
   createAssessment({ id: "", title: "", subject: "", questions: [] });
@@ -291,6 +300,15 @@ assert.throws(() => parseAssessmentCsv("bad,header\n", {
   title: "Bad",
   subject: "Bad",
 }), /Invalid assessment CSV header/);
+const csvHeader = "id,kind,prompt,answer,acceptedAnswers,points,choices,difficulty,tags,estimatedSeconds,hint,explanation";
+assert.throws(() => parseAssessmentCsv([
+  csvHeader,
+  'q1,short-answer,Question,ok,[],1,"[""A"",2]",,,,,',
+].join("\n"), { id: "bad-csv", title: "Bad CSV", subject: "Tests" }), /Invalid assessment CSV JSON field/);
+assert.throws(() => parseAssessmentCsv([
+  csvHeader,
+  'q1,short-answer,Question,ok,"[""ok"",3]",1,[],,,,,',
+].join("\n"), { id: "bad-csv", title: "Bad CSV", subject: "Tests" }), /Invalid assessment CSV JSON field/);
 
 const markdown = serializeAssessmentMarkdown(assessment);
 assert.match(markdown, /# Fractions de base/);
