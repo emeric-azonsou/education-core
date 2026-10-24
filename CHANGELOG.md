@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added offset and limit pagination to question selection APIs and the CLI.
 - Hardened question-filter APIs and CLI errors for unsupported types, difficulties and malformed filter values.
 - Added the CLI `select` command for composing tag, difficulty, kind and point-range filters.
 - Added normalized tag counts to summaries and a dedicated tag-based question listing helper.
