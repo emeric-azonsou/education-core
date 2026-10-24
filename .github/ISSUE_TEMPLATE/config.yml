@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contribution guide
+    url: https://github.com/emeric-azonsou/education-core/blob/main/CONTRIBUTING.md
+    about: Read the setup, testing and pull request guidance before contributing.

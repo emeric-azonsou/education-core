@@ -240,9 +240,11 @@ education workflows come before feature volume.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions should include tests,
-preserve the dependency-free runtime and explain the educational use case and
-compatibility impact.
+Start with the [contribution guide](CONTRIBUTING.md) and the
+[starter tasks](docs/CONTRIBUTOR_STARTER_TASKS.md). The easiest first
+contributions are focused tests, documentation, synthetic examples and
+accessibility improvements. Every behavior change should include verification
+and explain its educational use case.
 
 Please do not include student data, credentials, API keys or proprietary
 curriculum content in issues or pull requests.
