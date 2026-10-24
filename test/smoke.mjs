@@ -11,6 +11,7 @@ import {
   scoreAssessment,
   scoreAssessmentByTag,
   serializeAssessmentCsv,
+  serializeAssessmentMarkdown,
   serializeAssessment,
   summarizeAssessment,
   validateAnswers,
@@ -105,6 +106,11 @@ assert.throws(() => parseAssessmentCsv("bad,header\n", {
   title: "Bad",
   subject: "Bad",
 }), /Invalid assessment CSV header/);
+
+const markdown = serializeAssessmentMarkdown(assessment);
+assert.match(markdown, /# Fractions de base/);
+assert.doesNotMatch(markdown, /Answer/);
+assert.match(serializeAssessmentMarkdown(assessment, true), /\*\*Answer:\*\* 2\/4/);
 assert.deepEqual(validateAssessmentInput({
   id: "",
   title: "",
