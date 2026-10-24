@@ -85,6 +85,7 @@ export interface AssessmentSummary {
   estimatedQuestionCount: number;
   questionKinds: Readonly<Record<QuestionKind, number>>;
   difficultyCounts: Readonly<Record<Difficulty, number>>;
+  tagCounts: Readonly<Record<string, number>>;
 }
 
 export type PerformanceBand = "not-achieved" | "developing" | "achieved" | "mastery";
@@ -798,12 +799,17 @@ export function summarizeAssessment(assessment: Assessment): AssessmentSummary {
     intermediate: 0,
     advanced: 0,
   };
+  const tagCounts: Record<string, number> = {};
   let estimatedSeconds = 0;
   let estimatedQuestionCount = 0;
 
   for (const question of assessment.questions) {
     questionKinds[question.kind] += 1;
     if (question.difficulty) difficultyCounts[question.difficulty] += 1;
+    for (const tag of question.tags ?? []) {
+      const normalizedTag = normalizeAnswer(tag);
+      tagCounts[normalizedTag] = (tagCounts[normalizedTag] ?? 0) + 1;
+    }
     if (question.estimatedSeconds !== undefined) {
       estimatedSeconds += question.estimatedSeconds;
       estimatedQuestionCount += 1;
@@ -817,6 +823,7 @@ export function summarizeAssessment(assessment: Assessment): AssessmentSummary {
     estimatedQuestionCount,
     questionKinds,
     difficultyCounts,
+    tagCounts,
   };
 }
 
@@ -828,6 +835,12 @@ export function getQuestionById(assessment: Assessment, questionId: string): Que
 /** Returns all questions of a given kind while preserving their original order. */
 export function listQuestionsByKind(assessment: Assessment, kind: QuestionKind): readonly Question[] {
   return assessment.questions.filter((question) => question.kind === kind);
+}
+
+/** Returns all questions containing a tag while preserving their original order. */
+export function listQuestionsByTag(assessment: Assessment, tag: string): readonly Question[] {
+  const normalizedTag = normalizeAnswer(tag);
+  return assessment.questions.filter((question) => question.tags?.some((questionTag) => normalizeAnswer(questionTag) === normalizedTag));
 }
 
 /** Returns all questions at a given difficulty while preserving their original order. */
