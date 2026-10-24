@@ -160,6 +160,13 @@ assert.throws(() => recommendReviewTags(assessment, {}, 101), /between 0 and 100
 assert.deepEqual(validateAnswers(assessment, { q1: "2/4", unknown: "answer" }), [
   { path: "answers.unknown", message: "does not match an assessment question" },
 ]);
+assert.deepEqual(validateAnswers(assessment, /** @type {any} */ ({ q1: ["2/4"] })), [
+  { path: "answers.q1", message: "must be a string for this question type" },
+]);
+assert.deepEqual(validateAnswers(multipleChoice, { q1: ["Mercure"] }), []);
+assert.deepEqual(validateAnswers(multipleChoice, /** @type {any} */ ({ q1: ["Mercure", 1] })), [
+  { path: "answers.q1", message: "array values must be strings" },
+]);
 assert.equal(normalizeAnswer("ÉLÈVE"), "eleve");
 assert.equal(isAssessmentInput(assessment), true);
 assert.equal(isAssessmentInput({ id: "broken" }), false);
