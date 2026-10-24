@@ -2,7 +2,7 @@ export type QuestionKind = "single-choice" | "multiple-choice" | "true-false" | 
 export type Difficulty = "introductory" | "intermediate" | "advanced";
 export type AnswerValue = string | readonly string[];
 export type ExportLocale = "en" | "fr";
-export type QuestionOrder = "assessment" | "points-asc" | "points-desc";
+export type QuestionOrder = "assessment" | "points-asc" | "points-desc" | "time-asc" | "time-desc";
 
 export interface Question {
   id: string;
@@ -887,6 +887,14 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
   });
   if (filter.order === "points-asc") selected.sort((left, right) => left.points - right.points);
   if (filter.order === "points-desc") selected.sort((left, right) => right.points - left.points);
+  if (filter.order === "time-asc" || filter.order === "time-desc") {
+    const direction = filter.order === "time-asc" ? 1 : -1;
+    selected.sort((left, right) => {
+      if (left.estimatedSeconds === undefined) return 1;
+      if (right.estimatedSeconds === undefined) return -1;
+      return (left.estimatedSeconds - right.estimatedSeconds) * direction;
+    });
+  }
   const offset = filter.offset ?? 0;
   return filter.limit === undefined ? selected.slice(offset) : selected.slice(offset, offset + filter.limit);
 }
@@ -955,7 +963,7 @@ function validateQuestionFilter(filter: unknown): asserts filter is QuestionFilt
   if (filter.limit !== undefined && (typeof filter.limit !== "number" || !Number.isInteger(filter.limit) || filter.limit < 0)) {
     throw new RangeError("Question limit must be a non-negative integer");
   }
-  if (filter.order !== undefined && !["assessment", "points-asc", "points-desc"].includes(filter.order as string)) {
+  if (filter.order !== undefined && !["assessment", "points-asc", "points-desc", "time-asc", "time-desc"].includes(filter.order as string)) {
     throw new RangeError(`Unsupported question order: ${String(filter.order)}`);
   }
   if (filter.minEstimatedSeconds !== undefined && (typeof filter.minEstimatedSeconds !== "number" || !Number.isFinite(filter.minEstimatedSeconds) || filter.minEstimatedSeconds < 0)) {
