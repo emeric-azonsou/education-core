@@ -290,6 +290,12 @@ export function scoreAssessment(
   options: ScoreOptions = {},
 ): ScoreResult {
   if (!isRecord(answers)) throw new TypeError("Answers must be an object");
+  if (Object.values(answers).some((answer) => !isAnswerValue(answer))) {
+    throw new TypeError("Answers must contain only strings or string arrays");
+  }
+  if (!isRecord(options) || (options.partialCredit !== undefined && typeof options.partialCredit !== "boolean")) {
+    throw new TypeError("Score options are invalid");
+  }
   const correctQuestionIds: string[] = [];
   const incorrectQuestionIds: string[] = [];
   const unansweredQuestionIds: string[] = [];
@@ -385,6 +391,9 @@ export function classifyScore(
   if (!Number.isFinite(percentage) || percentage < 0 || percentage > 100) {
     throw new RangeError("Percentage must be between 0 and 100");
   }
+  if (!isRecord(thresholds) || !isValidThresholds(thresholds)) {
+    throw new RangeError("Performance thresholds must be ordered between 0 and 100");
+  }
   if (!(thresholds.developing >= 0 && thresholds.developing <= thresholds.achieved &&
       thresholds.achieved <= thresholds.mastery && thresholds.mastery <= 100)) {
     throw new RangeError("Performance thresholds must be ordered between 0 and 100");
@@ -423,6 +432,7 @@ export function summarizeScoreAttempts(
   results: readonly ScoreResult[],
   passingPercentage = 50,
 ): ScoreStatistics {
+  if (!Array.isArray(results)) throw new TypeError("Score results must be an array");
   if (!Number.isFinite(passingPercentage) || passingPercentage < 0 || passingPercentage > 100) {
     throw new RangeError("Passing percentage must be between 0 and 100");
   }
@@ -466,14 +476,15 @@ export function recommendReviewTags(
 export function isScoreResult(value: unknown): value is ScoreResult {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
   const candidate = value as Record<string, unknown>;
-  return typeof candidate.earnedPoints === "number" && Number.isFinite(candidate.earnedPoints) &&
-    typeof candidate.totalPoints === "number" && Number.isFinite(candidate.totalPoints) &&
-    typeof candidate.percentage === "number" && Number.isFinite(candidate.percentage) &&
-    Array.isArray(candidate.correctQuestionIds) &&
-    Array.isArray(candidate.incorrectQuestionIds) &&
-    Array.isArray(candidate.unansweredQuestionIds) &&
-    Array.isArray(candidate.details) &&
-    typeof candidate.passed === "boolean";
+  if (typeof candidate.earnedPoints !== "number" || !Number.isFinite(candidate.earnedPoints) ||
+      typeof candidate.totalPoints !== "number" || !Number.isFinite(candidate.totalPoints) ||
+      typeof candidate.percentage !== "number" || !Number.isFinite(candidate.percentage) ||
+      candidate.totalPoints < 0 || candidate.earnedPoints < 0 || candidate.earnedPoints > candidate.totalPoints ||
+      candidate.percentage < 0 || candidate.percentage > 100 ||
+      !isStringArray(candidate.correctQuestionIds) || !isStringArray(candidate.incorrectQuestionIds) ||
+      !isStringArray(candidate.unansweredQuestionIds) || !Array.isArray(candidate.details) ||
+      !candidate.details.every(isQuestionScore) || typeof candidate.passed !== "boolean") return false;
+  return true;
 }
 
 /** Normalizes human-entered answers for accent- and case-insensitive comparison. */
@@ -483,6 +494,25 @@ export function normalizeAnswer(value: string): string {
 
 function normalizeAnswerValue(value: AnswerValue): string | string[] {
   return typeof value === "string" ? normalizeAnswer(value) : value.map((answer) => normalizeAnswer(answer)).filter(Boolean);
+}
+
+function isAnswerValue(value: unknown): value is AnswerValue {
+  return typeof value === "string" || isStringArray(value);
+}
+
+function isQuestionScore(value: unknown): value is QuestionScore {
+  if (!isRecord(value) || typeof value.questionId !== "string" || !value.questionId ||
+      !isAnswerValue(value.expected) || typeof value.correct !== "boolean" ||
+      typeof value.earnedPoints !== "number" || !Number.isFinite(value.earnedPoints) || value.earnedPoints < 0 ||
+      typeof value.maxPoints !== "number" || !Number.isFinite(value.maxPoints) || value.maxPoints <= 0 ||
+      value.earnedPoints > value.maxPoints) return false;
+  return value.submitted === undefined || isAnswerValue(value.submitted);
+}
+
+function isValidThresholds(value: Record<string, unknown>): value is Record<keyof PerformanceThresholds, number> {
+  return typeof value.developing === "number" && Number.isFinite(value.developing) &&
+    typeof value.achieved === "number" && Number.isFinite(value.achieved) &&
+    typeof value.mastery === "number" && Number.isFinite(value.mastery);
 }
 
 function getAnswerValues(value: AnswerValue): readonly string[] {
@@ -811,6 +841,7 @@ function parseCsvRows(csv: string): string[][] {
       cell += character;
     }
   }
+  if (quoted) throw new Error("Invalid CSV: unterminated quoted field");
   rows.at(-1)?.push(cell);
   return rows;
 }
