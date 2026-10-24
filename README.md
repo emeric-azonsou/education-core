@@ -66,7 +66,8 @@ to obtain the number of questions, total points and distribution by question
 type.
 
 `getQuestionById` retrieves one question for editor screens, while
-`listQuestionsByKind` supports filtered views without changing the assessment.
+`listQuestionsByKind` and `listQuestionsByDifficulty` support filtered views
+without changing the assessment.
 
 Assessments may also include `difficulty`, `tags` and `learningObjectives`.
 Use `serializeAssessment` and `parseAssessment` to persist validated JSON.
@@ -103,7 +104,7 @@ The CLI validates submitted answer shapes before scoring or recommending review
 tags, and `--partial-credit` enables proportional multiple-choice scoring.
 
 Use `selectQuestions` to create focused views by tag, several required tags,
-difficulty or question kind without mutating the original assessment.
+difficulty, question kind or point range without mutating the original assessment.
 
 Use `shuffleAssessment(assessment, seed)` to generate reproducible question
 and choice variants while preserving the original assessment.

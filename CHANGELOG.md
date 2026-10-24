@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added difficulty-specific question listing and validated min/max point filters.
 - Added per-question estimated timing with validation and localized Markdown/HTML output.
 - Extended CSV round trips to preserve timing, hints and explanations.
 - Hardened assessment creation by copying top-level tags and learning objectives.
