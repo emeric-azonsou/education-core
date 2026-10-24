@@ -13,6 +13,7 @@ import {
   parseAssessment,
   scoreAssessment,
   scoreAssessmentByTag,
+  recommendReviewTags,
   summarizeScoreAttempts,
   selectQuestions,
   shuffleAssessment,
@@ -152,6 +153,10 @@ assert.deepEqual(scoreAssessmentByTag(assessment, { q1: "2/4", q2: "true" }), [
   { tag: "cycle-3", earnedPoints: 1, totalPoints: 1, percentage: 100 },
   { tag: "fractions", earnedPoints: 2, totalPoints: 2, percentage: 100 },
 ]);
+assert.deepEqual(recommendReviewTags(assessment, { q1: "2/4", q2: "false" }), [
+  { tag: "cycle-3", percentage: 0, earnedPoints: 0, totalPoints: 1 },
+]);
+assert.throws(() => recommendReviewTags(assessment, {}, 101), /between 0 and 100/);
 assert.deepEqual(validateAnswers(assessment, { q1: "2/4", unknown: "answer" }), [
   { path: "answers.unknown", message: "does not match an assessment question" },
 ]);
