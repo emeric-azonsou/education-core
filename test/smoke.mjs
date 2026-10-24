@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import {
   createAssessment,
+  classifyScore,
   getQuestionById,
   listQuestionsByKind,
   normalizeAnswer,
   parseAssessment,
   scoreAssessment,
+  scoreAssessmentByTag,
   serializeAssessment,
   summarizeAssessment,
   validateAnswers,
@@ -27,6 +29,7 @@ const assessment = createAssessment({
       choices: ["1/3", "2/4", "3/4"],
       answer: "2/4",
       points: 2,
+      tags: ["fractions"],
     },
     {
       id: "q2",
@@ -34,6 +37,7 @@ const assessment = createAssessment({
       prompt: "3/4 est supérieur à 1/2.",
       answer: "true",
       points: 1,
+      tags: ["cycle-3"],
     },
   ],
 });
@@ -52,6 +56,13 @@ assert.deepEqual(summarizeAssessment(assessment), {
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
 assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
+assert.equal(classifyScore(92), "mastery");
+assert.equal(classifyScore(68), "developing");
+assert.throws(() => classifyScore(101), /between 0 and 100/);
+assert.deepEqual(scoreAssessmentByTag(assessment, { q1: "2/4", q2: "true" }), [
+  { tag: "cycle-3", earnedPoints: 1, totalPoints: 1, percentage: 100 },
+  { tag: "fractions", earnedPoints: 2, totalPoints: 2, percentage: 100 },
+]);
 assert.deepEqual(validateAnswers(assessment, { q1: "2/4", unknown: "answer" }), [
   { path: "answers.unknown", message: "does not match an assessment question" },
 ]);
