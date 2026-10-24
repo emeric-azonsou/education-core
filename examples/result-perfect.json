@@ -1,0 +1,10 @@
+{
+  "earnedPoints": 2,
+  "totalPoints": 2,
+  "percentage": 100,
+  "correctQuestionIds": ["q1"],
+  "incorrectQuestionIds": [],
+  "unansweredQuestionIds": [],
+  "details": [],
+  "passed": true
+}
