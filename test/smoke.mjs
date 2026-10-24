@@ -63,6 +63,11 @@ assert.deepEqual(summarizeAssessment(assessment), {
     "true-false": 1,
     "short-answer": 0,
   },
+  difficultyCounts: {
+    introductory: 1,
+    intermediate: 1,
+    advanced: 0,
+  },
 });
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
