@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added the CLI `select --ids-only` output mode for scripting and pipelines.
 - Added ordered question lookup by IDs with explicit duplicate and missing-ID errors.
 - Added seeded pseudo-random question selection for reproducible quiz variants.
 - Added deterministic question-kind ordering to question selection and pagination.
