@@ -66,6 +66,9 @@ if (!command || !assessmentPath || !["validate", "validate-score", "summary", "s
       } else if (command === "summary") {
       console.log(JSON.stringify(summarizeAssessment(assessment), null, 2));
       } else if (command === "select") {
+        if ([idsOnly, countOnly, summaryOnly].filter(Boolean).length > 1) {
+          throw new Error("Selection output modes are mutually exclusive");
+        }
         const tags = tagsArgument?.slice("--tags=".length).split(",").map((tag) => tag.trim()).filter(Boolean);
         const anyTags = anyTagsArgument?.slice("--any-tags=".length).split(",").map((tag) => tag.trim());
         const excludeTags = excludeTagsArgument?.slice("--exclude-tags=".length).split(",").map((tag) => tag.trim());
