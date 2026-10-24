@@ -10,6 +10,7 @@ import {
   parseAssessment,
   scoreAssessment,
   scoreAssessmentByTag,
+  serializeAssessmentHtml,
   serializeAssessmentCsv,
   serializeAssessmentMarkdown,
   serializeAssessment,
@@ -111,6 +112,16 @@ const markdown = serializeAssessmentMarkdown(assessment);
 assert.match(markdown, /# Fractions de base/);
 assert.doesNotMatch(markdown, /Answer/);
 assert.match(serializeAssessmentMarkdown(assessment, true), /\*\*Answer:\*\* 2\/4/);
+const html = serializeAssessmentHtml(assessment);
+assert.match(html, /<!doctype html>/);
+assert.match(html, /Mathématiques/);
+assert.doesNotMatch(html, /Answer:/);
+assert.match(serializeAssessmentHtml(createAssessment({
+  id: "unsafe",
+  title: "<script>",
+  subject: "Web",
+  questions: [{ id: "q1", kind: "short-answer", prompt: "<img>", answer: "ok", points: 1 }],
+}), true), /&lt;script&gt;/);
 assert.deepEqual(validateAssessmentInput({
   id: "",
   title: "",
