@@ -21,6 +21,10 @@ and preserved by CSV export/import.
 Set `durationMinutes` to publish a validated time limit or estimated duration;
 the value is included in Markdown and HTML exports.
 
+Questions may define `estimatedSeconds` for a learner-facing time estimate. It
+is validated as a positive number and preserved by CSV, Markdown and HTML
+exports.
+
 `learningObjectives` are also included in those exports so learners and
 teachers can see the intended outcomes of an assessment.
 
@@ -140,8 +144,9 @@ npx classekit export-html examples/assessment.json
 ```
 
 For spreadsheet workflows, use `serializeAssessmentCsv` and
-`parseAssessmentCsv`. The CSV format preserves choices, difficulty and tags;
-the imported result is validated through the same core rules.
+`parseAssessmentCsv`. The CSV format preserves choices, difficulty, tags,
+question timing, hints and explanations; the imported result is validated
+through the same core rules.
 
 `export-md` creates a learner-facing Markdown document by default. Pass
 `--answers` to include the correction key for teachers.
