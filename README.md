@@ -15,6 +15,9 @@ and preserved by CSV export/import.
 Set `durationMinutes` to publish a validated time limit or estimated duration;
 the value is included in Markdown and HTML exports.
 
+`learningObjectives` are also included in those exports so learners and
+teachers can see the intended outcomes of an assessment.
+
 Pass `{ partialCredit: true }` as the third argument to `scoreAssessment` to
 award proportional points for partially correct multiple-choice answers.
 
