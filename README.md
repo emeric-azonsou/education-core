@@ -84,6 +84,9 @@ When handling untrusted JSON, call `isAssessmentInput` before passing data to
 `isQuestionInput` is available when validating individual records from an
 importer or editor.
 
+Invalid authoring data throws `AssessmentValidationError`, whose `issues`
+property contains structured `{ path, message }` entries for form UIs and CI.
+
 ## Design goals
 
 - no runtime dependencies;
