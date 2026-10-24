@@ -59,6 +59,21 @@ export interface AssessmentSummary {
   questionKinds: Readonly<Record<QuestionKind, number>>;
 }
 
+export type PerformanceBand = "not-achieved" | "developing" | "achieved" | "mastery";
+
+export interface PerformanceThresholds {
+  developing: number;
+  achieved: number;
+  mastery: number;
+}
+
+export interface TagScore {
+  tag: string;
+  earnedPoints: number;
+  totalPoints: number;
+  percentage: number;
+}
+
 const SUPPORTED_KINDS = new Set<QuestionKind>(["single-choice", "true-false", "short-answer"]);
 const SUPPORTED_DIFFICULTIES = new Set<Difficulty>(["introductory", "intermediate", "advanced"]);
 
@@ -189,6 +204,47 @@ export function validateAnswers(
       path: `answers.${questionId}`,
       message: "does not match an assessment question",
     }));
+}
+
+/** Converts a percentage into a configurable pedagogical performance band. */
+export function classifyScore(
+  percentage: number,
+  thresholds: PerformanceThresholds = { developing: 50, achieved: 70, mastery: 90 },
+): PerformanceBand {
+  if (!Number.isFinite(percentage) || percentage < 0 || percentage > 100) {
+    throw new RangeError("Percentage must be between 0 and 100");
+  }
+  if (!(thresholds.developing >= 0 && thresholds.developing <= thresholds.achieved &&
+      thresholds.achieved <= thresholds.mastery && thresholds.mastery <= 100)) {
+    throw new RangeError("Performance thresholds must be ordered between 0 and 100");
+  }
+  if (percentage >= thresholds.mastery) return "mastery";
+  if (percentage >= thresholds.achieved) return "achieved";
+  if (percentage >= thresholds.developing) return "developing";
+  return "not-achieved";
+}
+
+/** Aggregates a score by question tags for skill-oriented feedback. */
+export function scoreAssessmentByTag(
+  assessment: Assessment,
+  answers: Readonly<Record<string, string>>,
+): readonly TagScore[] {
+  const result = new Map<string, { earnedPoints: number; totalPoints: number }>();
+  const score = scoreAssessment(assessment, answers);
+  for (const detail of score.details) {
+    const question = getQuestionById(assessment, detail.questionId);
+    for (const tag of question?.tags ?? []) {
+      const current = result.get(tag) ?? { earnedPoints: 0, totalPoints: 0 };
+      current.earnedPoints += detail.earnedPoints;
+      current.totalPoints += detail.maxPoints;
+      result.set(tag, current);
+    }
+  }
+  return [...result.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([tag, values]) => ({
+    tag,
+    ...values,
+    percentage: values.totalPoints === 0 ? 0 : Math.round((values.earnedPoints / values.totalPoints) * 10000) / 100,
+  }));
 }
 
 /** Normalizes human-entered answers for accent- and case-insensitive comparison. */
