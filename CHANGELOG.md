@@ -6,6 +6,7 @@
 - Extended CSV round trips to preserve timing, hints and explanations.
 - Hardened assessment creation by copying top-level tags and learning objectives.
 - Hardened runtime guards for malformed optional fields, answer maps and CSV arrays.
+- Hardened score-result guards, scoring options, thresholds and unterminated CSV detection.
 
 ## 0.2.0 - 2026-10-24
 

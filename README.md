@@ -109,6 +109,8 @@ shapes incompatible with the question type.
 Malformed answer maps return structured validation issues instead of causing
 an internal iteration error, and malformed CSV arrays are rejected before they
 reach assessment validation.
+Score-result guards also verify numeric bounds and the shape of every question
+detail before repeated-attempt statistics are calculated.
 
 Invalid authoring data throws `AssessmentValidationError`, whose `issues`
 property contains structured `{ path, message }` entries for form UIs and CI.
