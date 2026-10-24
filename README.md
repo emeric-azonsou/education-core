@@ -145,6 +145,8 @@ so prompts and titles can safely contain user-provided text.
 The generated structure uses language metadata, ordered questions, fieldsets
 and labelled sections to support keyboard and assistive-technology workflows.
 Question difficulty and explanations are included in the generated feedback.
+Questions may also define a non-empty `hint`, which is included in learner
+Markdown and HTML supports.
 
 ## Contributing
 
