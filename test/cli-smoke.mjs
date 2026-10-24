@@ -51,7 +51,15 @@ assert.equal(JSON.parse(countOnlySelection.stdout), 1);
 
 const summaryOnlySelection = run("select", "examples/assessment.json", "--summary-only");
 assert.equal(summaryOnlySelection.status, 0);
-assert.deepEqual(JSON.parse(summaryOnlySelection.stdout), { questionCount: 1, totalPoints: 2, estimatedSeconds: 0, estimatedQuestionCount: 0 });
+assert.deepEqual(JSON.parse(summaryOnlySelection.stdout), {
+  questionCount: 1,
+  totalPoints: 2,
+  estimatedSeconds: 0,
+  estimatedQuestionCount: 0,
+  questionKinds: { "single-choice": 0, "multiple-choice": 0, "true-false": 0, "short-answer": 1 },
+  difficultyCounts: { introductory: 0, intermediate: 0, advanced: 0 },
+  tagCounts: {},
+});
 
 const timedSelection = run("select", "examples/assessment.json", "--min-time=1");
 assert.equal(timedSelection.status, 0);
