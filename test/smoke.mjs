@@ -28,6 +28,7 @@ const assessment = createAssessment({
   difficulty: "introductory",
   tags: ["fractions", "cycle-3"],
   learningObjectives: ["Comparer des fractions simples"],
+  durationMinutes: 30,
   questions: [
     {
       id: "q1",
@@ -162,6 +163,13 @@ const serialized = serializeAssessment(assessment);
 assert.equal(parseAssessment(serialized).id, assessment.id);
 assert.throws(() => parseAssessment("not-json"), /Invalid assessment JSON/);
 assert.throws(() => parseAssessment("null"), /Invalid assessment document/);
+assert.throws(() => createAssessment({
+  id: "invalid-duration",
+  title: "Invalid",
+  subject: "Mathématiques",
+  durationMinutes: 0,
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1 }],
+}), /durationMinutes.*positive/);
 
 const csv = serializeAssessmentCsv(assessment);
 assert.match(csv, /id,kind,prompt,answer,acceptedAnswers,points,choices,difficulty,tags/);
@@ -192,11 +200,13 @@ assert.throws(() => parseAssessmentCsv("bad,header\n", {
 
 const markdown = serializeAssessmentMarkdown(assessment);
 assert.match(markdown, /# Fractions de base/);
+assert.match(markdown, /Duration:\*\* 30 minutes/);
 assert.doesNotMatch(markdown, /Answer/);
 assert.match(serializeAssessmentMarkdown(assessment, true), /\*\*Answer:\*\* 2\/4/);
 const html = serializeAssessmentHtml(assessment);
 assert.match(html, /<!doctype html>/);
 assert.match(html, /Mathématiques/);
+assert.match(html, /Duration:<\/strong> 30 minutes/);
 assert.match(html, /aria-labelledby="question-1"/);
 assert.match(html, /<ol>/);
 assert.doesNotMatch(html, /Answer:/);
