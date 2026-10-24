@@ -481,12 +481,44 @@ export function selectQuestions(assessment: Assessment, filter: QuestionFilter):
   });
 }
 
+/** Creates a reproducible shuffled copy without mutating the source assessment. */
+export function shuffleAssessment(assessment: Assessment, seed = 1): Assessment {
+  if (!Number.isInteger(seed)) throw new RangeError("Shuffle seed must be an integer");
+  const random = seededRandom(seed);
+  const questions = assessment.questions.map((question) => ({
+    ...question,
+    ...(question.choices ? { choices: [...question.choices] } : {}),
+  }));
+  shuffleInPlace(questions, random);
+  for (const question of questions) {
+    if (question.choices) shuffleInPlace(question.choices as string[], random);
+  }
+  return { ...assessment, questions };
+}
+
 function validateTags(tags: readonly string[] | undefined, path: string, issues: ValidationIssue[]): void {
   if (!tags) return;
   if (tags.some((tag) => !tag.trim())) issues.push({ path, message: "must not contain empty values" });
   const normalizedTags = tags.map((tag) => tag.trim().toLowerCase());
   if (new Set(normalizedTags).size !== normalizedTags.length) {
     issues.push({ path, message: "must not contain duplicates" });
+  }
+}
+
+function seededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6D2B79F5) | 0;
+    let value = Math.imul(state ^ (state >>> 15), 1 | state);
+    value ^= value + Math.imul(value ^ (value >>> 7), 61 | value);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleInPlace<T>(items: T[], random: () => number): void {
+  for (let index = items.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [items[index], items[swapIndex]] = [items[swapIndex]!, items[index]!];
   }
 }
 
