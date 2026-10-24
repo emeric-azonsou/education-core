@@ -142,6 +142,8 @@ npm run verify
 
 `verify` compiles the package, runs both smoke suites and checks the package
 contents with the same commands used by CI before publication.
+The public API smoke suite also checks package exports, declarations, examples
+and the executable CLI metadata.
 `npm run test:cli` also exercises the CLI end to end, including successful
 JSON/localized exports and expected non-zero error paths.
 

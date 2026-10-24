@@ -15,6 +15,7 @@
 - Added end-to-end CLI smoke coverage for output and error exit codes.
 - Tightened authoring validation for metadata, choices and answer collections.
 - Extended submitted-answer validation to choices, duplicate selections and true/false values.
+- Added public API/package-manifest smoke tests and executable CLI metadata checks.
 - Added a unified `verify`/`prepublishOnly` gate and expanded CI package checks.
 
 ## 0.2.0 - 2026-10-24
