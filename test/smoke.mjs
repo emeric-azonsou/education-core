@@ -43,6 +43,7 @@ const assessment = createAssessment({
       points: 2,
       tags: ["fractions"],
       difficulty: "introductory",
+      hint: "Cherche une fraction équivalente.",
       explanation: "Multiplier le numérateur et le dénominateur par 2.",
     },
     {
@@ -220,6 +221,12 @@ assert.throws(() => createAssessment({
   passingPercentage: 101,
   questions: [{ id: "q1", kind: "short-answer", prompt: "Question", answer: "ok", points: 1 }],
 }), /passingPercentage.*between 0 and 100/);
+assert.throws(() => createAssessment({
+  id: "invalid-hint",
+  title: "Invalid",
+  subject: "Tests",
+  questions: [{ id: "q1", kind: "short-answer", prompt: "Question", hint: " ", answer: "ok", points: 1 }],
+}), /hint.*must not be empty/);
 
 const csv = serializeAssessmentCsv(assessment);
 assert.match(csv, /id,kind,prompt,answer,acceptedAnswers,points,choices,difficulty,tags/);
@@ -253,6 +260,7 @@ assert.match(markdown, /# Fractions de base/);
 assert.match(markdown, /Duration:\*\* 30 minutes/);
 assert.match(markdown, /Objectives:\*\* Comparer des fractions simples/);
 assert.match(markdown, /Explanation:\*\* Multiplier le numérateur/);
+assert.match(markdown, /Hint:\*\* Cherche une fraction équivalente/);
 assert.doesNotMatch(markdown, /Answer/);
 assert.match(serializeAssessmentMarkdown(assessment, true), /\*\*Answer:\*\* 2\/4/);
 assert.match(serializeAssessmentMarkdown(assessment, false, "fr"), /Matière/);
@@ -264,6 +272,7 @@ assert.match(html, /Duration:<\/strong> 30 minutes/);
 assert.match(html, /Objectives:<\/strong> Comparer des fractions simples/);
 assert.match(html, /Difficulty:<\/strong> introductory/);
 assert.match(html, /Explanation:<\/strong> Multiplier le numérateur/);
+assert.match(html, /Hint:<\/strong> Cherche une fraction équivalente/);
 assert.match(html, /aria-labelledby="question-1"/);
 assert.match(html, /<ol>/);
 assert.match(serializeAssessmentHtml(assessment, false, "fr"), /Matière:<\/strong>/);
