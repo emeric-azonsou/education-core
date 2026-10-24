@@ -79,6 +79,16 @@ export function validateAssessmentInput(input: AssessmentInput): ValidationIssue
     if (question.kind === "single-choice" && (!question.choices || question.choices.length < 2)) {
       issues.push({ path: `${path}.choices`, message: "must contain at least two choices" });
     }
+    if (question.choices) {
+      const normalizedChoices = question.choices.map((choice) => choice.trim().toLowerCase());
+      if (new Set(normalizedChoices).size !== normalizedChoices.length) {
+        issues.push({ path: `${path}.choices`, message: "must not contain duplicates" });
+      }
+    }
+    if (question.kind === "single-choice" && question.choices &&
+        !question.choices.some((choice) => choice.trim().toLowerCase() === question.answer.trim().toLowerCase())) {
+      issues.push({ path: `${path}.answer`, message: "must match one of the choices" });
+    }
     if (question.kind === "true-false" && !["true", "false"].includes(question.answer.toLowerCase())) {
       issues.push({ path: `${path}.answer`, message: "must be true or false" });
     }
