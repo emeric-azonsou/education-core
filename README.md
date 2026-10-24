@@ -109,8 +109,9 @@ When handling untrusted JSON, call `isAssessmentInput` before passing data to
 `createAssessment`. Invalid runtime shapes are rejected with a clear error.
 `isQuestionInput` is available when validating individual records from an
 importer or editor.
-Use `validateAnswers` before scoring to detect unknown question IDs and answer
-shapes incompatible with the question type.
+Use `validateAnswers` before scoring to detect unknown question IDs, answer
+shapes incompatible with the question type, values outside the choices,
+duplicate selections and invalid true/false values.
 Malformed answer maps return structured validation issues instead of causing
 an internal iteration error, and malformed CSV arrays are rejected before they
 reach assessment validation.
