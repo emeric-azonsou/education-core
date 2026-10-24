@@ -25,6 +25,14 @@ const structuredValidation = run("validate", "examples/assessment.json", "--json
 assert.equal(structuredValidation.status, 0);
 assert.equal(JSON.parse(structuredValidation.stdout).valid, true);
 
+const scoreValidation = run("validate-score", "examples/result-perfect.json");
+assert.equal(scoreValidation.status, 0);
+assert.equal(JSON.parse(scoreValidation.stdout).valid, true);
+
+const invalidScoreValidation = run("validate-score", "examples/invalid-result.json");
+assert.equal(invalidScoreValidation.status, 1);
+assert.equal(JSON.parse(invalidScoreValidation.stdout).valid, false);
+
 const invalidAnswers = run("score", "examples/assessment.json", "examples/invalid-answers.json");
 assert.equal(invalidAnswers.status, 1);
 assert.match(invalidAnswers.stderr, /does not match an assessment question/);

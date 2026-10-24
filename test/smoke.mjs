@@ -26,6 +26,7 @@ import {
   summarizeAssessment,
   validateAnswers,
   validateAssessmentInput,
+  validateScoreResult,
 } from "../dist/index.js";
 
 const assessment = createAssessment({
@@ -505,7 +506,11 @@ assert.deepEqual(summarizeScoreAttempts([]), {
 });
 assert.throws(() => summarizeScoreAttempts([perfectAttempt], 101), /between 0 and 100/);
 assert.equal(isScoreResult(perfectAttempt), true);
+assert.deepEqual(validateScoreResult(perfectAttempt), []);
 assert.equal(isScoreResult({ percentage: 100 }), false);
+assert.deepEqual(validateScoreResult({ percentage: 100 }), [
+  { path: "scoreResult", message: "must be valid and internally consistent" },
+]);
 assert.equal(isScoreResult({ ...perfectAttempt, details: [{ questionId: "q1", expected: "ok", correct: true, earnedPoints: 2, maxPoints: 2, submitted: 7 }] }), false);
 assert.equal(isScoreResult({ ...perfectAttempt, earnedPoints: 99 }), false);
 assert.equal(isScoreResult({ ...perfectAttempt, incorrectQuestionIds: ["q1"], unansweredQuestionIds: ["q2"] }), false);
