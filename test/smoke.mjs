@@ -3,6 +3,7 @@ import {
   createAssessment,
   classifyScore,
   getQuestionById,
+  isAssessmentInput,
   listQuestionsByKind,
   normalizeAnswer,
   parseAssessment,
@@ -67,6 +68,9 @@ assert.deepEqual(validateAnswers(assessment, { q1: "2/4", unknown: "answer" }), 
   { path: "answers.unknown", message: "does not match an assessment question" },
 ]);
 assert.equal(normalizeAnswer("ÉLÈVE"), "eleve");
+assert.equal(isAssessmentInput(assessment), true);
+assert.equal(isAssessmentInput({ id: "broken" }), false);
+assert.throws(() => createAssessment(/** @type {any} */ ({ id: "broken" })), /Invalid assessment input/);
 assert.equal(scoreAssessment(createAssessment({
   id: "accents",
   title: "Accents",
