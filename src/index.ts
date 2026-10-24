@@ -9,6 +9,7 @@ export interface Question {
   points: number;
   choices?: readonly string[];
   answer: AnswerValue;
+  acceptedAnswers?: readonly string[];
   explanation?: string;
   difficulty?: Difficulty;
   tags?: readonly string[];
@@ -96,6 +97,7 @@ export function createAssessment(input: AssessmentInput): Assessment {
   const questions = input.questions.map((question) => ({
     ...question,
     ...(Array.isArray(question.answer) ? { answer: [...question.answer] } : {}),
+    ...(question.acceptedAnswers ? { acceptedAnswers: [...question.acceptedAnswers] } : {}),
     ...(question.choices ? { choices: [...question.choices] } : {}),
     ...(question.tags ? { tags: [...question.tags] } : {}),
   }));
@@ -173,6 +175,18 @@ export function validateAssessmentInput(input: AssessmentInput): ValidationIssue
         !["true", "false"].includes(normalizeAnswer(question.answer))) {
       issues.push({ path: `${path}.answer`, message: "must be true or false" });
     }
+    if (question.acceptedAnswers) {
+      if (question.kind === "multiple-choice") {
+        issues.push({ path: `${path}.acceptedAnswers`, message: "is not supported for multiple-choice questions" });
+      }
+      if (question.acceptedAnswers.some((answer) => !answer.trim())) {
+        issues.push({ path: `${path}.acceptedAnswers`, message: "must not contain empty values" });
+      }
+      const normalizedAccepted = question.acceptedAnswers.map(normalizeAnswer);
+      if (new Set(normalizedAccepted).size !== normalizedAccepted.length) {
+        issues.push({ path: `${path}.acceptedAnswers`, message: "must not contain duplicates" });
+      }
+    }
   });
 
   return issues;
@@ -191,7 +205,8 @@ export function scoreAssessment(assessment: Assessment, answers: Readonly<Record
     const submitted = rawAnswer === undefined ? undefined : normalizeAnswerValue(rawAnswer);
     const expected = question.answer;
     const isUnanswered = submitted === undefined || submitted.length === 0;
-    const correct = !isUnanswered && answersMatch(submitted, expected);
+    const correct = !isUnanswered && [expected, ...(question.acceptedAnswers ?? [])]
+      .some((candidate) => answersMatch(submitted, candidate));
     if (correct) {
       earnedPoints += question.points;
       correctQuestionIds.push(question.id);
@@ -319,12 +334,13 @@ export function parseAssessment(json: string): Assessment {
 
 /** Exports assessment questions as a spreadsheet-friendly CSV document. */
 export function serializeAssessmentCsv(assessment: Assessment): string {
-  const header = ["id", "kind", "prompt", "answer", "points", "choices", "difficulty", "tags"];
+  const header = ["id", "kind", "prompt", "answer", "acceptedAnswers", "points", "choices", "difficulty", "tags"];
   const rows = assessment.questions.map((question) => [
     question.id,
     question.kind,
     question.prompt,
     serializeAnswerCell(question.answer),
+    JSON.stringify(question.acceptedAnswers ?? []),
     String(question.points),
     JSON.stringify(question.choices ?? []),
     question.difficulty ?? "",
@@ -371,7 +387,7 @@ export function serializeAssessmentHtml(assessment: Assessment, includeAnswers =
 export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, "id" | "title" | "subject">): Assessment {
   const rows = parseCsvRows(csv);
   const [header, ...data] = rows;
-  const expectedHeader = ["id", "kind", "prompt", "answer", "points", "choices", "difficulty", "tags"];
+  const expectedHeader = ["id", "kind", "prompt", "answer", "acceptedAnswers", "points", "choices", "difficulty", "tags"];
   if (!header || header.join("|") !== expectedHeader.join("|")) {
     throw new Error("Invalid assessment CSV header");
   }
@@ -379,10 +395,12 @@ export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, 
     if (row.length !== expectedHeader.length) throw new Error(`Invalid assessment CSV row ${index + 2}`);
     const value = (position: number): string => row[position] ?? "";
     let choices: string[] | undefined;
+    let acceptedAnswers: string[] | undefined;
     let tags: string[] | undefined;
     try {
-      choices = JSON.parse(value(5) || "[]") as string[];
-      tags = JSON.parse(value(7) || "[]") as string[];
+      acceptedAnswers = JSON.parse(value(4) || "[]") as string[];
+      choices = JSON.parse(value(6) || "[]") as string[];
+      tags = JSON.parse(value(8) || "[]") as string[];
     } catch {
       throw new Error(`Invalid assessment CSV JSON field on row ${index + 2}`);
     }
@@ -391,9 +409,10 @@ export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, 
       kind: value(1) as QuestionKind,
       prompt: value(2),
       answer: parseAnswerCell(value(3), index + 2),
-      points: Number(value(4)),
+      points: Number(value(5)),
+      ...(acceptedAnswers.length ? { acceptedAnswers } : {}),
       ...(choices.length ? { choices } : {}),
-      ...(value(6) ? { difficulty: value(6) as Difficulty } : {}),
+      ...(value(7) ? { difficulty: value(7) as Difficulty } : {}),
       ...(tags.length ? { tags } : {}),
     };
   });
