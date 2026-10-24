@@ -106,6 +106,9 @@ When handling untrusted JSON, call `isAssessmentInput` before passing data to
 importer or editor.
 Use `validateAnswers` before scoring to detect unknown question IDs and answer
 shapes incompatible with the question type.
+Malformed answer maps return structured validation issues instead of causing
+an internal iteration error, and malformed CSV arrays are rejected before they
+reach assessment validation.
 
 Invalid authoring data throws `AssessmentValidationError`, whose `issues`
 property contains structured `{ path, message }` entries for form UIs and CI.
