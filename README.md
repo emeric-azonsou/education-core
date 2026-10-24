@@ -192,10 +192,11 @@ and `--any-tags` to target exact, required or alternative topics, then use
 and `--max-points` to build focused
 question sets for review or quiz generation. Use `--min-time` and `--max-time`
 to require estimated timing metadata. Use `--order=points-asc`,
-`--order=points-desc`, `--order=time-asc` or `--order=time-desc` before
+`--order=points-desc`, `--order=time-asc`, `--order=time-desc`,
 `--order=difficulty-asc` or `--order=difficulty-desc` before `--offset` and
-`--limit` to rank and paginate the result. Unsupported filter values are
-rejected explicitly.
+`--limit` to rank and paginate the result. `--order=kind-asc` and
+`--order=kind-desc` group questions by interaction format. Unsupported filter
+values are rejected explicitly.
 
 Exports support English and French labels. For the CLI, pass
 `--locale=fr` or `--locale=en`.

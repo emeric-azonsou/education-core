@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added deterministic question-kind ordering to question selection and pagination.
 - Added deterministic difficulty ordering to question selection and pagination.
 - Added deterministic estimated-time ordering to question selection and pagination.
 - Added exclusion-tag matching for removing topics from question selections.
