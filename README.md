@@ -199,7 +199,7 @@ to require estimated timing metadata. Use `--order=points-asc`,
 `--order=kind-desc` group questions by interaction format. Unsupported filter
 values are rejected explicitly. Add `--seed=42` to randomize the selected
 order reproducibly. Add `--ids-only` when a pipeline only needs the selected
-question identifiers.
+question identifiers, or `--count-only` when it only needs the result count.
 
 Exports support English and French labels. For the CLI, pass
 `--locale=fr` or `--locale=en`.

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added the CLI `select --count-only` output mode for CI checks and scripts.
 - Added the CLI `select --ids-only` output mode for scripting and pipelines.
 - Added ordered question lookup by IDs with explicit duplicate and missing-ID errors.
 - Added seeded pseudo-random question selection for reproducible quiz variants.
