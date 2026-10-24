@@ -72,6 +72,8 @@ Assessments may also include `difficulty`, `tags` and `learningObjectives`.
 Use `serializeAssessment` and `parseAssessment` to persist validated JSON.
 Use `serializeScoreResult` and `parseScoreResult` to persist validated scoring
 results with the same runtime checks used by statistics.
+Use `validateScoreResult` when an editor or CI needs structured issues without
+throwing, or run `classekit validate-score <result.json>` from the terminal.
 Answer scoring ignores differences in case and accents, so `élève` and
 `ELEVE` are treated as equivalent.
 
@@ -154,6 +156,7 @@ After building, validate an assessment file or score submitted answers:
 ```bash
 npx classekit validate examples/assessment.json
 npx classekit validate examples/assessment.json --json
+npx classekit validate-score examples/result-perfect.json
 npx classekit summary examples/assessment.json
 npx classekit score examples/assessment.json examples/answers.json --partial-credit
 npx classekit recommend examples/assessment.json examples/answers.json --threshold=70
