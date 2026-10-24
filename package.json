@@ -17,9 +17,12 @@
     "build": "tsc -p tsconfig.json",
     "test": "node test/smoke.mjs",
     "test:cli": "node bin/classekit.mjs validate examples/assessment.json --json && node bin/classekit.mjs validate examples/assessment.json && node bin/classekit.mjs summary examples/assessment.json && node bin/classekit.mjs score examples/assessment.json examples/answers.json --partial-credit && node bin/classekit.mjs recommend examples/assessment.json examples/answers.json && node bin/classekit.mjs shuffle examples/assessment.json --seed=42 && node bin/classekit.mjs stats examples/result-perfect.json examples/result-empty.json && node bin/classekit.mjs export-json examples/assessment.json && node bin/classekit.mjs export-csv examples/assessment.json && node bin/classekit.mjs export-md examples/assessment.json --locale=fr && node bin/classekit.mjs export-html examples/assessment.json --locale=fr && node test/cli-smoke.mjs",
-    "check": "npm run build && npm test"
+    "check": "npm run build && npm test",
+    "verify": "npm run check && npm run test:cli",
+    "prepublishOnly": "npm run verify"
   },
   "keywords": ["education", "assessment", "exams", "francophone", "typescript", "open-source"],
   "license": "MIT",
+  "publishConfig": { "access": "public" },
   "engines": { "node": ">=20" }
 }
