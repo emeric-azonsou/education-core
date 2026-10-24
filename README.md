@@ -81,6 +81,10 @@ npx classekit validate examples/assessment.json
 npx classekit score examples/assessment.json examples/answers.json
 ```
 
+For spreadsheet workflows, use `serializeAssessmentCsv` and
+`parseAssessmentCsv`. The CSV format preserves choices, difficulty and tags;
+the imported result is validated through the same core rules.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions should include tests and preserve the package's dependency-free runtime.
