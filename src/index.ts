@@ -65,6 +65,7 @@ export interface AssessmentSummary {
   questionCount: number;
   totalPoints: number;
   questionKinds: Readonly<Record<QuestionKind, number>>;
+  difficultyCounts: Readonly<Record<Difficulty, number>>;
 }
 
 export type PerformanceBand = "not-achieved" | "developing" | "achieved" | "mastery";
@@ -460,15 +461,22 @@ export function summarizeAssessment(assessment: Assessment): AssessmentSummary {
     "true-false": 0,
     "short-answer": 0,
   };
+  const difficultyCounts: Record<Difficulty, number> = {
+    introductory: 0,
+    intermediate: 0,
+    advanced: 0,
+  };
 
   for (const question of assessment.questions) {
     questionKinds[question.kind] += 1;
+    if (question.difficulty) difficultyCounts[question.difficulty] += 1;
   }
 
   return {
     questionCount: assessment.questions.length,
     totalPoints: assessment.totalPoints,
     questionKinds,
+    difficultyCounts,
   };
 }
 
