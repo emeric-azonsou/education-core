@@ -405,6 +405,22 @@ export function validateAnswers(
       issues.push({ path: `answers.${questionId}`, message: "array values must be strings" });
     } else if (question.kind !== "multiple-choice" && Array.isArray(answer)) {
       issues.push({ path: `answers.${questionId}`, message: "must be a string for this question type" });
+    } else {
+      const values = Array.isArray(answer) ? answer : [answer];
+      if (Array.isArray(answer)) {
+        const normalizedValues = answer.map(normalizeAnswer);
+        if (new Set(normalizedValues).size !== normalizedValues.length) {
+          issues.push({ path: `answers.${questionId}`, message: "must not contain duplicate values" });
+        }
+      }
+      if ((question.kind === "single-choice" || question.kind === "multiple-choice") && question.choices &&
+          values.some((value) => !question.choices?.some((choice) => normalizeAnswer(choice) === normalizeAnswer(value)))) {
+        issues.push({ path: `answers.${questionId}`, message: "must match one of the choices" });
+      }
+      if (question.kind === "true-false" && typeof answer === "string" &&
+          !["true", "false"].includes(normalizeAnswer(answer))) {
+        issues.push({ path: `answers.${questionId}`, message: "must be true or false" });
+      }
     }
   }
   return issues;
