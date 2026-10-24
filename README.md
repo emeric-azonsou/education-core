@@ -57,6 +57,9 @@ feedback screens and teacher dashboards.
 Use `classifyScore` to map a percentage to a performance band, and
 `scoreAssessmentByTag` to summarize progress by skill or learning topic.
 
+Use `selectQuestions` to create focused views by tag or difficulty without
+mutating the original assessment.
+
 When handling untrusted JSON, call `isAssessmentInput` before passing data to
 `createAssessment`. Invalid runtime shapes are rejected with a clear error.
 
