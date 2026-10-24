@@ -284,6 +284,55 @@ export function parseAssessment(json: string): Assessment {
   return createAssessment(input as AssessmentInput);
 }
 
+/** Exports assessment questions as a spreadsheet-friendly CSV document. */
+export function serializeAssessmentCsv(assessment: Assessment): string {
+  const header = ["id", "kind", "prompt", "answer", "points", "choices", "difficulty", "tags"];
+  const rows = assessment.questions.map((question) => [
+    question.id,
+    question.kind,
+    question.prompt,
+    question.answer,
+    String(question.points),
+    JSON.stringify(question.choices ?? []),
+    question.difficulty ?? "",
+    JSON.stringify(question.tags ?? []),
+  ]);
+  return [header, ...rows].map((row) => row.map(escapeCsvCell).join(",")).join("\n");
+}
+
+/** Imports a question CSV document and validates the resulting assessment. */
+export function parseAssessmentCsv(csv: string, metadata: Pick<AssessmentInput, "id" | "title" | "subject">): Assessment {
+  const rows = parseCsvRows(csv);
+  const [header, ...data] = rows;
+  const expectedHeader = ["id", "kind", "prompt", "answer", "points", "choices", "difficulty", "tags"];
+  if (!header || header.join("|") !== expectedHeader.join("|")) {
+    throw new Error("Invalid assessment CSV header");
+  }
+  const questions = data.filter((row) => row.some((cell) => cell.trim())).map((row, index) => {
+    if (row.length !== expectedHeader.length) throw new Error(`Invalid assessment CSV row ${index + 2}`);
+    const value = (position: number): string => row[position] ?? "";
+    let choices: string[] | undefined;
+    let tags: string[] | undefined;
+    try {
+      choices = JSON.parse(value(5) || "[]") as string[];
+      tags = JSON.parse(value(7) || "[]") as string[];
+    } catch {
+      throw new Error(`Invalid assessment CSV JSON field on row ${index + 2}`);
+    }
+    return {
+      id: value(0),
+      kind: value(1) as QuestionKind,
+      prompt: value(2),
+      answer: value(3),
+      points: Number(value(4)),
+      ...(choices.length ? { choices } : {}),
+      ...(value(6) ? { difficulty: value(6) as Difficulty } : {}),
+      ...(tags.length ? { tags } : {}),
+    };
+  });
+  return createAssessment({ ...metadata, questions });
+}
+
 /** Returns lightweight metadata suitable for dashboards and content reviews. */
 export function summarizeAssessment(assessment: Assessment): AssessmentSummary {
   const questionKinds: Record<QuestionKind, number> = {
@@ -320,4 +369,38 @@ function validateTags(tags: readonly string[] | undefined, path: string, issues:
   if (new Set(normalizedTags).size !== normalizedTags.length) {
     issues.push({ path, message: "must not contain duplicates" });
   }
+}
+
+function escapeCsvCell(value: string): string {
+  return /[",\n\r]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+}
+
+function parseCsvRows(csv: string): string[][] {
+  const rows: string[][] = [[]];
+  let cell = "";
+  let quoted = false;
+  for (let index = 0; index < csv.length; index += 1) {
+    const character = csv[index];
+    const next = csv[index + 1];
+    if (character === '"') {
+      if (quoted && next === '"') {
+        cell += '"';
+        index += 1;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (character === "," && !quoted) {
+      rows.at(-1)?.push(cell);
+      cell = "";
+    } else if ((character === "\n" || character === "\r") && !quoted) {
+      if (character === "\r" && next === "\n") index += 1;
+      rows.at(-1)?.push(cell);
+      rows.push([]);
+      cell = "";
+    } else {
+      cell += character;
+    }
+  }
+  rows.at(-1)?.push(cell);
+  return rows;
 }
