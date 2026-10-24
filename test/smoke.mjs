@@ -7,6 +7,7 @@ import {
   isAssessmentInput,
   isQuestionInput,
   isScoreResult,
+  listQuestionsByDifficulty,
   listQuestionsByKind,
   normalizeAnswer,
   parseAssessmentCsv,
@@ -101,12 +102,17 @@ assert.deepEqual(summarizeAssessment(assessment), {
 });
 assert.equal(getQuestionById(assessment, "q1")?.prompt, "Quelle fraction est équivalente à 1/2 ?");
 assert.equal(getQuestionById(assessment, "missing"), undefined);
+assert.equal(listQuestionsByDifficulty(assessment, "introductory")[0].id, "q1");
 assert.equal(listQuestionsByKind(assessment, "true-false").length, 1);
 assert.equal(selectQuestions(assessment, { tag: "FRACTIONS" }).length, 1);
 assert.equal(selectQuestions(assessment, { difficulty: "intermediate" })[0].id, "q2");
 assert.equal(selectQuestions(assessment, { kind: "single-choice" })[0].id, "q1");
 assert.equal(selectQuestions(assessment, { tags: ["fractions", "cycle-3"] }).length, 0);
 assert.equal(selectQuestions(assessment, { tags: ["fractions"] })[0].id, "q1");
+assert.equal(selectQuestions(assessment, { minPoints: 2 })[0].id, "q1");
+assert.equal(selectQuestions(assessment, { maxPoints: 1 })[0].id, "q2");
+assert.throws(() => selectQuestions(assessment, { minPoints: -1 }), /minPoints.*finite non-negative/);
+assert.throws(() => selectQuestions(assessment, { minPoints: 2, maxPoints: 1 }), /minPoints.*maxPoints/);
 const shuffledA = shuffleAssessment(assessment, 42);
 const shuffledB = shuffleAssessment(assessment, 42);
 assert.deepEqual(shuffledA, shuffledB);

@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 const api = await import("../dist/index.js");
 const expectedExports = [
   "AssessmentValidationError", "classifyScore", "createAssessment", "getQuestionById",
-  "isAssessmentInput", "isQuestionInput", "isScoreResult", "listQuestionsByKind",
+  "isAssessmentInput", "isQuestionInput", "isScoreResult", "listQuestionsByDifficulty", "listQuestionsByKind",
   "normalizeAnswer", "parseAssessment", "parseAssessmentCsv", "parseScoreResult",
   "recommendReviewTags", "scoreAssessment", "scoreAssessmentByTag", "selectQuestions",
   "serializeAssessment", "serializeAssessmentCsv", "serializeAssessmentHtml",
