@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added seeded pseudo-random question selection for reproducible quiz variants.
 - Added deterministic question-kind ordering to question selection and pagination.
 - Added deterministic difficulty ordering to question selection and pagination.
 - Added deterministic estimated-time ordering to question selection and pagination.

@@ -196,7 +196,8 @@ to require estimated timing metadata. Use `--order=points-asc`,
 `--order=difficulty-asc` or `--order=difficulty-desc` before `--offset` and
 `--limit` to rank and paginate the result. `--order=kind-asc` and
 `--order=kind-desc` group questions by interaction format. Unsupported filter
-values are rejected explicitly.
+values are rejected explicitly. Add `--seed=42` to randomize the selected
+order reproducibly.
 
 Exports support English and French labels. For the CLI, pass
 `--locale=fr` or `--locale=en`.
